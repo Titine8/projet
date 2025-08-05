@@ -1,11 +1,12 @@
 import React from "react";
+import { useNavigate } from "react-router-dom"; // en haut
 
 export default function App() {
-  const fileInputRef = React.useRef(null); // Pour déclencher le clic programmé sur le champ fichier
-  const [csvFilesInfo, setCsvFilesInfo] = React.useState([]);
-  const [modalOpen, setModalOpen] = React.useState(false);
+  const [hoveredPrimary, setHoveredPrimary] = React.useState(false);
+  const [hoveredSecondary, setHoveredSecondary] = React.useState(false);
+  // dans le composant App()
+const navigate = useNavigate();
 
-  // 🎨 Styles CSS inline
   const styles = {
     page: {
       width: "100vw",
@@ -98,155 +99,7 @@ export default function App() {
       fontSize: "1rem",
       lineHeight: "1.4",
     },
-
-    // Styles modal
-    modalOverlay: {
-      position: "fixed",
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: "rgba(0, 0, 0, 0.7)",
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      zIndex: 1000,
-    },
-    modalContent: {
-      backgroundColor: "rgba(245, 245, 220, 0.95)", // blanc cassé un peu transparent (beige clair)
-      padding: "30px",
-      borderRadius: "15px",
-      width: "90%",
-      maxWidth: "700px",
-      color: "#1b4d3e", // texte sombre pour contraste
-      maxHeight: "80vh",
-      overflowY: "auto",
-      boxShadow: "0 0 25px rgba(0,0,0,0.3)",
-    },
-    modalCloseButton: {
-      backgroundColor: "#1b4d3e",
-      border: "none",
-      color: "white",
-      fontWeight: "700",
-      padding: "10px 25px",
-      borderRadius: "30px",
-      cursor: "pointer",
-      fontSize: "1rem",
-      marginTop: "20px",
-    },
-    openModalButton: {
-      marginTop: "30px",
-      backgroundColor: "#14532d",
-      border: "none",
-      color: "white",
-      fontWeight: "700",
-      padding: "12px 30px",
-      borderRadius: "30px",
-      cursor: "pointer",
-      fontSize: "1.1rem",
-      boxShadow: "0 5px 10px rgba(0,0,0,0.3)",
-      transition: "background-color 0.3s",
-    },
   };
-
-  // Gestion hover boutons
-  const [hoveredPrimary, setHoveredPrimary] = React.useState(false);
-  const [hoveredSecondary, setHoveredSecondary] = React.useState(false);
-
-  // Détection des types colonnes (inchangé)
-  function detectColumnTypes(rows) {
-    const nbRowsToSample = Math.min(rows.length, 20);
-    const nbCols = rows[0].length;
-    const columnValues = Array.from({ length: nbCols }, () => []);
-
-    for (let i = 0; i < nbRowsToSample; i++) {
-      const row = rows[i];
-      row.forEach((val, colIndex) => {
-        columnValues[colIndex].push(val.trim());
-      });
-    }
-
-    const types = columnValues.map((values) => {
-      let isNumber = true;
-      let isBoolean = true;
-      let isDate = true;
-
-      for (const val of values) {
-        if (val === "") continue;
-
-        const v = val.toLowerCase();
-
-        if (isNumber && isNaN(Number(val))) {
-          isNumber = false;
-        }
-
-        if (isBoolean && v !== "true" && v !== "false") {
-          isBoolean = false;
-        }
-
-        if (isDate && isNaN(Date.parse(val))) {
-          isDate = false;
-        }
-      }
-
-      if (isBoolean) return "Booléen";
-      if (isNumber) return "Nombre";
-      if (isDate) return "Date/Heure";
-      return "Texte";
-    });
-
-    return types;
-  }
-
-  // Lecture des fichiers (inchangé)
-  const handleFileChange = (event) => {
-    const files = Array.from(event.target.files);
-    const newInfos = [];
-
-    files.forEach((file) => {
-      const reader = new FileReader();
-
-      reader.onload = (e) => {
-        const text = e.target.result;
-        const lines = text.trim().split("\n");
-        const headers = lines[0].split(",");
-
-        const rows = lines.slice(1).map((line) => line.split(","));
-
-        const types = detectColumnTypes(rows);
-
-        newInfos.push({
-          nom: file.name,
-          colonnes: headers,
-          types: types,
-        });
-
-        if (newInfos.length === files.length) {
-          setCsvFilesInfo(newInfos);
-          setModalOpen(true); // Ouvre le modal à l'import
-        }
-      };
-
-      reader.readAsText(file);
-    });
-  };
-
-  // Composant Modal simple
-  function Modal({ onClose, children }) {
-    return (
-      <div style={styles.modalOverlay} onClick={onClose}>
-        <div
-          style={styles.modalContent}
-          onClick={(e) => e.stopPropagation()}
-        >
-          {children}
-          <button style={styles.modalCloseButton} onClick={onClose}>
-            Fermer
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div style={styles.page}>
@@ -265,7 +118,7 @@ export default function App() {
             }
             onMouseEnter={() => setHoveredPrimary(true)}
             onMouseLeave={() => setHoveredPrimary(false)}
-            onClick={() => fileInputRef.current?.click()}
+            onClick={() => navigate("/auth")}
           >
             Commencer maintenant
           </button>
@@ -278,47 +131,11 @@ export default function App() {
             }
             onMouseEnter={() => setHoveredSecondary(true)}
             onMouseLeave={() => setHoveredSecondary(false)}
+            onClick={() => {}} // bouton inactif
           >
             En savoir plus
           </button>
         </div>
-
-        <input
-          type="file"
-          accept=".csv"
-          multiple
-          style={{ display: "none" }}
-          ref={fileInputRef}
-          onChange={handleFileChange}
-        />
-
-        {csvFilesInfo.length > 0 && (
-          <button
-            style={styles.openModalButton}
-            onClick={() => setModalOpen(true)}
-            aria-label="Voir les données importées"
-          >
-            Voir les données importées
-          </button>
-        )}
-
-        {modalOpen && (
-          <Modal onClose={() => setModalOpen(false)}>
-            <h2>📂 Données importées :</h2>
-            {csvFilesInfo.map((info, index) => (
-              <div key={index} style={{ marginBottom: "25px" }}>
-                <h3>📄 {info.nom}</h3>
-                <ul>
-                  {info.colonnes.map((col, i) => (
-                    <li key={i}>
-                      <strong>{col}</strong> — {info.types[i]}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </Modal>
-        )}
 
         <div style={styles.features}>
           <FeatureCard
