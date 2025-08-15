@@ -350,11 +350,13 @@ export default function ImportPage() {
     setModalOpen(true);
   };
 
-  // Confirme l'analyse -> redirection
-  const confirmAnalysis = () => {
-    setModalOpen(false);
-    navigate("/analyse", { state: { folder: folderToAnalyze } });
-  };
+ // Confirme l'analyse -> redirection
+const confirmAnalysis = () => {
+  setModalOpen(false);
+  const username = localStorage.getItem("username");
+  navigate(`/analyse/${encodeURIComponent(username)}/${encodeURIComponent(folderToAnalyze)}`);
+};
+
 
   // Annule l'analyse modal
   const cancelAnalysis = () => {

@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'corsheaders',  # si tu veux gérer le CORS entre React et Django
     'accounts', 
     'import',
+    'statistique',
 ]
 
 REST_FRAMEWORK = {
