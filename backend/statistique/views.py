@@ -29,6 +29,44 @@ def list_files(request):
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
+def file_data(request):
+    username = request.GET.get("username")
+    folder = request.GET.get("folder")
+    filename = request.GET.get("file")  # récupère le nom du fichier
+
+    if not username or not folder or not filename:
+        return JsonResponse({"error": "username, folder et file sont requis"}, status=400)
+
+    user_folder_path = os.path.join(settings.MEDIA_ROOT, username, folder)
+    file_path = os.path.join(user_folder_path, filename)
+
+    if not os.path.exists(file_path):
+        return JsonResponse({'error': 'Fichier non trouvé'}, status=404)
+
+    # Lecture du fichier
+    try:
+        if filename.endswith('.csv'):
+            df = pd.read_csv(file_path)
+        elif filename.endswith(('.xls', '.xlsx')):
+            df = pd.read_excel(file_path)
+        else:
+            return JsonResponse({'error': 'Type de fichier non supporté'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+    # Limiter la taille des données renvoyées pour le frontend
+    preview = df.head(100).to_dict(orient='records')  # seulement les 100 premières lignes
+
+    response = {
+        'shape': {'rows': df.shape[0], 'columns': df.shape[1]},
+        'preview': preview,
+        'columns': list(df.columns)
+    }
+
+    return JsonResponse(response)
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
 def descriptive_stats(request, username, folder, filename):
     user_folder = os.path.join(settings.MEDIA_ROOT, username, folder)
     file_path = os.path.join(user_folder, filename)

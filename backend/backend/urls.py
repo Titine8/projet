@@ -22,9 +22,10 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-     path('api/accounts/', include('accounts.urls')),
-     path('api/import/', include('import.urls')),
-     path("api/statistique/", include("statistique.urls")),
+    path('api/accounts/', include('accounts.urls')),
+    path('api/import/', include('import.urls')),
+    path("api/statistique/", include("statistique.urls")),
+    path('api/visualisation', include('visualisation.urls')),
 ]
 from django.conf import settings
 from django.conf.urls.static import static

@@ -4,4 +4,5 @@ from . import views
 urlpatterns = [
     path("files/", views.list_files),
     path('<str:username>/<str:folder>/<str:filename>/', views.descriptive_stats, name='descriptive-stats'),
+    path("file-data/", views.file_data),  # <-- nouveau endpoint
 ]

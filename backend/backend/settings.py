@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'accounts', 
     'import',
     'statistique',
+    'visualisation',
 ]
 
 REST_FRAMEWORK = {
