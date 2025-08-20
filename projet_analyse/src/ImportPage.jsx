@@ -421,7 +421,6 @@ const confirmAnalysis = () => {
           />
           <input
             type="file"
-            multiple
             onChange={handleFileChange}
             accept=".csv, .xlsx"
             style={{

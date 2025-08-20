@@ -45,19 +45,30 @@ export default function Visualisation() {
   }, []);
 
   const fetchFiles = async () => {
-    setLoading(true);
-    try {
-      const res = await axios.get("http://localhost:8000/api/statistique/files/", {
-        headers: { Authorization: `Bearer ${token}` },
-        params: { username: decodedUsername, folder: decodedFolder },
-      });
-      setFiles(res.data.files || []);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
+  setLoading(true);
+  try {
+    const res = await axios.get("http://localhost:8000/api/statistique/files/", {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { username: decodedUsername, folder: decodedFolder },
+    });
+
+    const fetchedFiles = res.data.files || [];
+    setFiles(fetchedFiles);
+
+    // Sélectionner par défaut le fichier commençant par "file_"
+    const defaultFile = fetchedFiles.find(f => f.startsWith("file_"));
+    if (defaultFile) {
+      setSelectedFile(defaultFile);
+      handleFileSelect({ target: { value: defaultFile } }); // charger les données
     }
-  };
+
+  } catch (err) {
+    console.error(err);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const handleFileSelect = async (e) => {
     const file = e.target.value;
@@ -223,7 +234,7 @@ export default function Visualisation() {
     { id: "statistique", label: "Statistique descriptive", action: () => navigate(`/analyse/${username}/${folder}`) },
     { id: "visualisation", label: "Visualisation", action: () => navigate(`/visualisation/${username}/${folder}`) },
     { id: "analyse", label: "Analyse de donnée", action: () => alert("Bientôt disponible 🚀") },
-    { id: "prediction", label: "Prédiction", action: () => alert("Bientôt disponible 🚀") },
+    { id: "prediction", label: "Prédiction", action: () => navigate(`/prediction/${username}/${folder}`) },
   ];
 
   return (
@@ -254,7 +265,7 @@ export default function Visualisation() {
       <main style={styles.main}>
         <div style={styles.selectorContainer}>
           <label style={styles.label}>Choisir un fichier :</label>
-          <select style={styles.select} onChange={handleFileSelect} value={selectedFile}>
+          <select style={styles.select} onChange={handleFileSelect} value={selectedFile} disabled>
             <option value="">-- Sélectionner --</option>
             {files.map((f) => (
               <option key={f} value={f}>

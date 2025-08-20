@@ -52,10 +52,16 @@ class FileUploadView(APIView):
             if ext not in allowed_extensions:
                 return Response({"error": f"Extension non autorisée: {ext}"}, status=status.HTTP_400_BAD_REQUEST)
 
-            file_path = os.path.join(final_path, file.name)
-            with default_storage.open(file_path, 'wb+') as destination:
-                for chunk in file.chunks():
-                    destination.write(chunk)
+        # Chemin du fichier original
+        file_path = os.path.join(final_path, file.name)
+        with default_storage.open(file_path, 'wb+') as destination:
+            for chunk in file.chunks():
+                destination.write(chunk)
+
+        # Chemin de la copie avec 'file_' devant
+        copy_name = f"file_{file.name}"
+        copy_path = os.path.join(final_path, copy_name)
+        shutil.copy(file_path, copy_path)
 
         return Response({"message": "Fichiers importés avec succès."}, status=status.HTTP_200_OK)
 

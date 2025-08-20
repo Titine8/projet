@@ -49,10 +49,10 @@ export default function Analyse() {
   };
 
   const menuButtons = [
-    { id: "statistique", label: "Statistique descriptive", action: () => {} },
-      { id: "visualisation", label: "Visualisation", action: () => navigate(`/visualisation/${username}/${folder}`) },
+       { id: "statistique", label: "Statistique descriptive", action: () => navigate(`/analyse/${username}/${folder}`) },
+    { id: "visualisation", label: "Visualisation", action: () => navigate(`/visualisation/${username}/${folder}`) },
     { id: "analyse", label: "Analyse de donnée", action: () => alert("Bientôt disponible 🚀") },
-    { id: "prediction", label: "Prédiction", action: () => alert("Bientôt disponible 🚀") }
+    { id: "prediction", label: "Prédiction", action: () => navigate(`/prediction/${username}/${folder}`) },
   ];
 
   const formatNumber = (value) => {

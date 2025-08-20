@@ -7,7 +7,7 @@ import RegisterPage from "./RegisterPage.jsx";
 import ImportPage from "./ImportPage";
 import Analyse from "./analyse";
 import Visualisation from "./Visualisation"
-import PredictionTab from "./PredictionTab";
+import Prediction from "./prediction";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
@@ -19,6 +19,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         <Route path="/import" element={<ImportPage />} />
         <Route path="/analyse/:username/:folder" element={<Analyse />}/>
          <Route path="/visualisation/:username/:folder" element={<Visualisation />} />
+         <Route path="/prediction/:username/:folder" element={<Prediction />} />
          </Routes>
     </BrowserRouter>
   </React.StrictMode>
