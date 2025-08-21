@@ -8,25 +8,49 @@ export default function Analyse() {
   const decodedFolder = decodeURIComponent(folder);
   const navigate = useNavigate();
 
-  const [files, setFiles] = useState([]);
+  const [file, setFile] = useState(null);
   const [stats, setStats] = useState({});
   const [loading, setLoading] = useState(false);
   const [openFile, setOpenFile] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [fileInfo, setFileInfo] = useState(null);
+
+ const fetchFileInfo = async (fileName) => {
+  try {
+    const token = localStorage.getItem("accessToken"); // Ajoutez cette ligne
+    const res = await axios.get(
+      `http://localhost:8000/api/statistique/${encodeURIComponent(decodedUsername)}/${encodeURIComponent(decodedFolder)}/${encodeURIComponent(fileName)}/info/`, // Correction du chemin
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    setFileInfo(res.data);
+  } catch (err) {
+    console.error("Erreur lors de la récupération des infos du fichier:", err);
+  }
+};
+
 
   const token = localStorage.getItem("accessToken");
 
   useEffect(() => {
-    fetchFiles();
+    fetchFile();
   }, []);
 
-  const fetchFiles = async () => {
+  const fetchFile = async () => {
     setLoading(true);
     try {
       const res = await axios.get("http://localhost:8000/api/statistique/files/", {
         headers: { Authorization: `Bearer ${token}` },
         params: { username: decodedUsername, folder: decodedFolder }
       });
-      setFiles(res.data.files || []);
+
+      // Trouver le fichier unique qui commence par "file_"
+      const targetFile = (res.data.files || []).find(f => f.startsWith("file_"));
+      setFile(targetFile || null);
+
+      if (targetFile) {
+        fetchStats(targetFile);
+        fetchFileInfo(targetFile);
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -34,22 +58,22 @@ export default function Analyse() {
     }
   };
 
-  const fetchStats = async (file) => {
-    if (stats[file]) return;
+  const fetchStats = async (fileName) => {
+    if (stats[fileName]) return;
     try {
       const res = await axios.get(
-        `http://localhost:8000/api/statistique/${encodeURIComponent(decodedUsername)}/${encodeURIComponent(decodedFolder)}/${encodeURIComponent(file)}/`,
+        `http://localhost:8000/api/statistique/${encodeURIComponent(decodedUsername)}/${encodeURIComponent(decodedFolder)}/${encodeURIComponent(fileName)}/`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      console.log("Résultat backend pour", file, ":", res.data);
-      setStats(prev => ({ ...prev, [file]: res.data.stats }));
+      console.log("Résultat backend pour", fileName, ":", res.data);
+      setStats(prev => ({ ...prev, [fileName]: res.data.stats }));
     } catch (err) {
       console.error(err);
     }
   };
 
   const menuButtons = [
-       { id: "statistique", label: "Statistique descriptive", action: () => navigate(`/analyse/${username}/${folder}`) },
+    { id: "statistique", label: "Statistique descriptive", action: () => navigate(`/analyse/${username}/${folder}`) },
     { id: "visualisation", label: "Visualisation", action: () => navigate(`/visualisation/${username}/${folder}`) },
     { id: "analyse", label: "Analyse de donnée", action: () => alert("Bientôt disponible 🚀") },
     { id: "prediction", label: "Prédiction", action: () => navigate(`/prediction/${username}/${folder}`) },
@@ -88,96 +112,164 @@ export default function Analyse() {
 
       <main style={styles.main}>
         {loading ? (
-          <p style={styles.loading}>Chargement des fichiers...</p>
-        ) : (
-          files.map(file => (
-            <div key={file} style={styles.card}>
-              <div style={styles.cardHeader}>
-                <h3>{file}</h3>
-                <button
-                  style={styles.actionButton}
-                  onClick={() => {
-                    if (openFile === file) {
-                      setOpenFile(null);
-                    } else {
-                      fetchStats(file);
-                      setOpenFile(file);
-                    }
-                  }}
-                >
-                  {openFile === file ? "❌ Fermer" : "📊 Voir les stats"}
-                </button>
-              </div>
-              {openFile === file && (
-                <div style={styles.statsPanel}>
-                  {stats[file] ? (
-                    <table style={styles.table}>
-                      <thead>
-                        <tr>
-                          <th>Nom de la colonne</th>
-                          <th>Type</th>
-                          <th>Nb valeurs</th>
-                          <th>Nb valeurs manquantes</th>
-                          <th>Nb valeurs uniques</th>
-                          <th>Mode / Valeur fréquente</th>
-                          <th>Moyenne</th>
-                          <th>Médiane</th>
-                          <th>Min</th>
-                          <th>Max</th>
-                          <th>Écart-type</th>
-                          <th>Variance</th>
-                          <th>Q1</th>
-                          <th>Q3</th>
-                          <th>IQR</th>
-                          <th>Skewness</th>
-                          <th>Kurtosis</th>
-                          <th>% Top catégorie</th>
-                          <th>Outliers détectés</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {Array.isArray(stats[file]) &&
-                          stats[file].map((data, index) => (
-                            <tr key={index}>
-                              <td>{data["Nom de la colonne"]}</td>
-                              <td>{data["Type"]}</td>
-                              <td>{data["Nb valeurs"]}</td>
-                              <td>{data["Nb valeurs manquantes"]}</td>
-                              <td>{data["Nb valeurs uniques"]}</td>
-                              <td>{data["Mode / Valeur fréquente"] ?? "-"}</td>
-                              <td>{formatNumber(data["Moyenne"])}</td>
-                              <td>{formatNumber(data["Médiane"])}</td>
-                              <td>{formatNumber(data["Min"])}</td>
-                              <td>{formatNumber(data["Max"])}</td>
-                              <td>{formatNumber(data["Écart-type"])}</td>
-                              <td>{formatNumber(data["Variance"])}</td>
-                              <td>{formatNumber(data["Q1"])}</td>
-                              <td>{formatNumber(data["Q3"])}</td>
-                              <td>{formatNumber(data["IQR"])}</td>
-                              <td>{formatNumber(data["Skewness"])}</td>
-                              <td>{formatNumber(data["Kurtosis"])}</td>
-                              <td>{formatNumber(data["% Top catégorie"])}</td>
-                              <td>
+          <p style={styles.loading}>Chargement du fichier...</p>
+        ) : file ? (
+          <div style={styles.card}>
+            <div style={styles.cardHeader}>
+              <h3>{file}</h3>
+
+              <input
+                type="text"
+                placeholder="🔍 Rechercher une colonne"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                style={{
+                  marginLeft: "10px",
+                  padding: "6px 10px",
+                  borderRadius: "8px",
+                  border: "1px solid #ccc",
+                  fontSize: "13px"
+                }}
+              />
+
+            </div>
+            <div style={styles.statsPanel}>
+              {stats[file] ? (
+                <>
+                  {/* Nombre de lignes, colonnes et valeurs manquantes */}
+                  {fileInfo && (
+                    <p style={{
+                      fontWeight: "600",
+                      marginBottom: "10px",
+                      color: "#333",
+                      fontFamily: "Segoe UI, sans-serif"
+                    }}>
+                      📄 {fileInfo.nb_lignes} ligne{fileInfo.nb_lignes > 1 ? "s" : ""} |
+                      {fileInfo.nb_colonnes} colonne{fileInfo.nb_colonnes > 1 ? "s" : ""} |
+                      ⚠️ {fileInfo.valeurs_manquantes} valeur{fileInfo.valeurs_manquantes > 1 ? "s" : ""} manquante{fileInfo.valeurs_manquantes > 1 ? "s" : ""}
+                    </p>
+                  )}
+
+                  <table style={{
+                    width: "100%",
+                    borderCollapse: "collapse",
+                    marginTop: "15px",
+                    fontFamily: "Segoe UI, sans-serif",
+                    boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+                    borderRadius: "10px",
+                    overflow: "hidden"
+                  }}>
+                    <thead>
+                      <tr>
+                        <th style={{
+                          backgroundColor: "#1b4d3e",
+                          color: "white",
+                          padding: "10px",
+                          textAlign: "left",
+                          fontWeight: "600",
+                          fontSize: "13px"
+                        }}>Nom de la colonne</th>
+                        <th style={{
+                          backgroundColor: "#1b4d3e",
+                          color: "white",
+                          padding: "10px",
+                          textAlign: "left",
+                          fontWeight: "600",
+                          fontSize: "13px"
+                        }}>Type</th>
+                        <th style={thStyles}>Nb valeurs</th>
+                        <th style={thStyles}>Nb valeurs manquantes</th>
+                        <th style={thStyles}>Nb valeurs uniques</th>
+                        <th style={thStyles}>Mode / Valeur fréquente</th>
+                        <th style={thStyles}>Moyenne</th>
+                        <th style={thStyles}>Médiane</th>
+                        <th style={thStyles}>Min</th>
+                        <th style={thStyles}>Max</th>
+                        <th style={thStyles}>Écart-type</th>
+                        <th style={thStyles}>Variance</th>
+                        <th style={thStyles}>Q1</th>
+                        <th style={thStyles}>Q3</th>
+                        <th style={thStyles}>IQR</th>
+                        <th style={thStyles}>Skewness</th>
+                        <th style={thStyles}>Kurtosis</th>
+                        <th style={thStyles}>% Top catégorie</th>
+                        <th style={thStyles}>Outliers détectés</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {Array.isArray(stats[file]) &&
+                        stats[file]
+                          .filter(data => data["Nom de la colonne"].toLowerCase().includes(searchTerm.toLowerCase()))
+                          .map((data, index) => (
+
+                            <tr
+                              key={index}
+                              style={{
+                                backgroundColor: index % 2 === 0 ? "white" : "#f9f9f9",
+                                transition: "background-color 0.2s ease"
+                              }}
+                              onMouseEnter={e => (e.currentTarget.style.backgroundColor = "#f5f7f6")}
+                              onMouseLeave={e => (e.currentTarget.style.backgroundColor = index % 2 === 0 ? "white" : "#f9f9f9")}
+                            >
+                              <td style={tdStyles}>{data["Nom de la colonne"]}</td>
+                              <td style={tdStyles}>{data["Type"]}</td>
+                              <td style={tdStyles}>{data["Nb valeurs"]}</td>
+                              <td style={tdStyles}>{data["Nb valeurs manquantes"]}</td>
+                              <td style={tdStyles}>{data["Nb valeurs uniques"]}</td>
+                              <td style={tdStyles}>{data["Mode / Valeur fréquente"] ?? "-"}</td>
+                              <td style={tdStyles}>{formatNumber(data["Moyenne"])}</td>
+                              <td style={tdStyles}>{formatNumber(data["Médiane"])}</td>
+                              <td style={tdStyles}>{formatNumber(data["Min"])}</td>
+                              <td style={tdStyles}>{formatNumber(data["Max"])}</td>
+                              <td style={tdStyles}>{formatNumber(data["Écart-type"])}</td>
+                              <td style={tdStyles}>{formatNumber(data["Variance"])}</td>
+                              <td style={tdStyles}>{formatNumber(data["Q1"])}</td>
+                              <td style={tdStyles}>{formatNumber(data["Q3"])}</td>
+                              <td style={tdStyles}>{formatNumber(data["IQR"])}</td>
+                              <td style={tdStyles}>{formatNumber(data["Skewness"])}</td>
+                              <td style={tdStyles}>{formatNumber(data["Kurtosis"])}</td>
+                              <td style={tdStyles}>{formatNumber(data["% Top catégorie"])}</td>
+                              <td style={tdStyles}>
                                 {Array.isArray(data["Outliers détectés"])
                                   ? data["Outliers détectés"].length
                                   : data["Outliers détectés"] ?? "-"}
                               </td>
                             </tr>
                           ))}
-                      </tbody>
-                    </table>
-                  ) : (
-                    <p>Chargement des statistiques...</p>
-                  )}
-                </div>
+                    </tbody>
+                  </table>
+                </>
+              ) : (
+                <p>Chargement des statistiques...</p>
               )}
             </div>
-          ))
+
+
+
+          </div>
+        ) : (
+          <p>Aucun fichier trouvé</p>
         )}
       </main>
     </div>
   );
 }
+
+const tdStyles = {
+  padding: "10px",
+  borderBottom: "1px solid #e0e0e0",
+  fontSize: "13px",
+  color: "#333"
+};
+
+const thStyles = {
+  backgroundColor: "#1b4d3e",
+  color: "white",
+  padding: "10px",
+  textAlign: "left",
+  fontWeight: "600",
+  fontSize: "13px"
+};
 
 const styles = {
   page: {

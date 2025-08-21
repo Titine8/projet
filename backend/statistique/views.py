@@ -156,3 +156,31 @@ def descriptive_stats(request, username, folder, filename):
     }
 
     return JsonResponse(response)
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def file_info(request, username, folder, filename):
+    user_folder = os.path.join(settings.MEDIA_ROOT, username, folder)
+    file_path = os.path.join(user_folder, filename)
+
+    if not os.path.exists(file_path):
+        return JsonResponse({'error': 'Fichier non trouvé'}, status=404)
+
+    try:
+        if filename.endswith('.csv'):
+            df = pd.read_csv(file_path)
+        elif filename.endswith(('.xls', '.xlsx')):
+            df = pd.read_excel(file_path)
+        else:
+            return JsonResponse({'error': 'Type de fichier non supporté'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+    total_missing = df.isna().sum().sum()  # toutes les colonnes cumulées
+
+    response = {
+        "nb_lignes": df.shape[0],
+        "nb_colonnes": df.shape[1],
+        "valeurs_manquantes": int(total_missing)
+    }
+    return JsonResponse(response)

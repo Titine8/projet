@@ -1,43 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  PointElement,
-  Title,
-  Tooltip,
-  Legend,
-  ArcElement,
-} from "chart.js";
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, PointElement, Title, Tooltip, Legend, ArcElement } from "chart.js";
 import { Bar, Scatter, Pie } from "react-chartjs-2";
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  PointElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend
-);
+ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, ArcElement, Title, Tooltip, Legend);
 
 export default function Visualisation() {
   const { username, folder } = useParams();
   const decodedUsername = decodeURIComponent(username);
   const decodedFolder = decodeURIComponent(folder);
   const navigate = useNavigate();
-
   const [files, setFiles] = useState([]);
   const [columns, setColumns] = useState([]);
   const [selectedFile, setSelectedFile] = useState("");
   const [selectedCols, setSelectedCols] = useState([]);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
-
   const token = localStorage.getItem("accessToken");
 
   useEffect(() => {
@@ -45,30 +24,25 @@ export default function Visualisation() {
   }, []);
 
   const fetchFiles = async () => {
-  setLoading(true);
-  try {
-    const res = await axios.get("http://localhost:8000/api/statistique/files/", {
-      headers: { Authorization: `Bearer ${token}` },
-      params: { username: decodedUsername, folder: decodedFolder },
-    });
-
-    const fetchedFiles = res.data.files || [];
-    setFiles(fetchedFiles);
-
-    // Sélectionner par défaut le fichier commençant par "file_"
-    const defaultFile = fetchedFiles.find(f => f.startsWith("file_"));
-    if (defaultFile) {
-      setSelectedFile(defaultFile);
-      handleFileSelect({ target: { value: defaultFile } }); // charger les données
+    setLoading(true);
+    try {
+      const res = await axios.get("http://localhost:8000/api/statistique/files/", {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { username: decodedUsername, folder: decodedFolder },
+      });
+      const fetchedFiles = res.data.files || [];
+      setFiles(fetchedFiles);
+      const defaultFile = fetchedFiles.find(f => f.startsWith("file_"));
+      if (defaultFile) {
+        setSelectedFile(defaultFile);
+        handleFileSelect({ target: { value: defaultFile } });
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
-
-  } catch (err) {
-    console.error(err);
-  } finally {
-    setLoading(false);
-  }
-};
-
+  };
 
   const handleFileSelect = async (e) => {
     const file = e.target.value;
@@ -76,19 +50,15 @@ export default function Visualisation() {
     setSelectedCols([]);
     setColumns([]);
     setData([]);
-
     if (!file) return;
-
     setLoading(true);
     try {
       const res = await axios.get("http://localhost:8000/api/statistique/file-data/", {
         headers: { Authorization: `Bearer ${token}` },
         params: { username: decodedUsername, folder: decodedFolder, file },
       });
-
       const fileData = res.data.preview || [];
       setData(fileData);
-
       if (res.data.columns) setColumns(res.data.columns);
     } catch (err) {
       console.error(err);
@@ -110,125 +80,187 @@ export default function Visualisation() {
   };
 
   const renderChart = () => {
-    if (selectedCols.length === 0 || data.length === 0) return null;
+  if (selectedCols.length === 0 || data.length === 0) return null;
 
-    if (selectedCols.length === 1) {
-      const col = selectedCols[0];
-      const numeric = isNumericColumn(col);
+  const charts = [];
 
-      if (numeric) {
-        const counts = {};
-        data.forEach((row) => {
-          const val = parseFloat(row[col]);
-          if (!isNaN(val)) {
-            const key = Math.round(val);
-            counts[key] = (counts[key] || 0) + 1;
-          }
-        });
-        return (
-          <Bar
-            data={{
-              labels: Object.keys(counts),
-              datasets: [{ label: col, data: Object.values(counts), backgroundColor: "rgba(75,192,192,0.6)" }],
-            }}
-          />
-        );
-      } else {
-        const counts = {};
-        data.forEach((row) => {
-          const val = row[col] ?? "N/A";
-          counts[val] = (counts[val] || 0) + 1;
-        });
-        return (
-          <Pie
-            data={{
-              labels: Object.keys(counts),
-              datasets: [
-                {
+  selectedCols.forEach((col) => {
+    const colIsNumeric = isNumericColumn(col);
+
+    // 1️⃣ Colonne seule
+    if (colIsNumeric) {
+      // Histogramme coloré
+const counts = {};
+data.forEach((row) => {
+  const val = parseFloat(row[col]);
+  if (!isNaN(val)) {
+    const key = Math.round(val);
+    counts[key] = (counts[key] || 0) + 1;
+  }
+});
+
+const labels = Object.keys(counts);
+const values = Object.values(counts);
+
+// Palette de couleurs vivante
+const palette = ["#eeeeee", "#cccccc", "#aaaaaa", "#888888", "#666666", "#444444", "#222222"];
+const backgroundColors = labels.map((_, i) => palette[i % palette.length]);
+
+charts.push(
+  <div key={col} style={styles.chartContainer}>
+    <h3 style={styles.chartTitle}>{col}</h3>
+    <div style={styles.chartWrapper}>
+      <Bar
+        data={{
+          labels,
+          datasets: [{ label: col, data: values, backgroundColor: backgroundColors }],
+        }}
+        options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }}
+      />
+    </div>
+  </div>
+);
+
+    } else {
+      // Pie chart
+      const counts = {};
+      data.forEach((row) => {
+        const val = row[col] ?? "N/A";
+        counts[val] = (counts[val] || 0) + 1;
+      });
+      charts.push(
+        <div key={col} style={styles.chartContainer}>
+          <h3 style={styles.chartTitle}>{col}</h3>
+          <div style={styles.chartWrapper}>
+            <Pie
+              data={{
+                labels: Object.keys(counts),
+                datasets: [{
                   label: col,
                   data: Object.values(counts),
                   backgroundColor: Object.keys(counts).map(
-                    () => `rgba(${Math.floor(Math.random() * 200)},${Math.floor(Math.random() * 200)},${Math.floor(
-                      Math.random() * 200
-                    )},0.6)`
+                    () => `rgba(${Math.floor(Math.random() * 200)},${Math.floor(Math.random() * 200)},${Math.floor(Math.random() * 200)},0.6)`
                   ),
-                },
-              ],
-            }}
-          />
-        );
-      }
+                }],
+              }}
+              options={{ responsive: true, maintainAspectRatio: false }}
+            />
+          </div>
+        </div>
+      );
     }
 
-    if (selectedCols.length === 2) {
-      const [col1, col2] = selectedCols;
-      const col1Numeric = isNumericColumn(col1);
-      const col2Numeric = isNumericColumn(col2);
+    // 2️⃣ Colonne vs autres colonnes
+    columns.forEach((otherCol) => {
+      if (otherCol === col) return; // ne pas comparer avec soi-même
 
-      // Scatter plot for numeric vs numeric
-      if (col1Numeric && col2Numeric) {
-        return (
-          <Scatter
-            data={{
-              datasets: [
-                {
-                  label: `${col1} vs ${col2}`,
-                  data: data.map((row) => ({ x: parseFloat(row[col1]), y: parseFloat(row[col2]) })),
-                  backgroundColor: "rgba(75,192,192,0.8)",
-                },
-              ],
-            }}
-          />
+      const otherIsNumeric = isNumericColumn(otherCol);
+
+      if (colIsNumeric && otherIsNumeric) {
+        // Scatter plot
+        charts.push(
+          <div key={`${col}-${otherCol}`} style={styles.chartContainer}>
+            <h3 style={styles.chartTitle}>{col} vs {otherCol}</h3>
+            <div style={styles.chartWrapper}>
+              <Scatter
+                data={{
+                  datasets: [{
+                    label: `${col} vs ${otherCol}`,
+                    data: data.map((row) => ({ x: parseFloat(row[col]), y: parseFloat(row[otherCol]) }))
+                              .filter(d => !isNaN(d.x) && !isNaN(d.y)),
+                    backgroundColor: "rgba(75,192,192,0.6)",
+                  }],
+                }}
+                options={{ responsive: true, maintainAspectRatio: false }}
+              />
+            </div>
+          </div>
         );
-      }
-
-      // Bar chart for categorical vs categorical
-      if (!col1Numeric && !col2Numeric) {
-        const col1Labels = [...new Set(data.map((row) => row[col1] ?? "N/A"))];
-        const col2Values = [...new Set(data.map((row) => row[col2] ?? "N/A"))];
-
-        const groupedCounts = {};
+      } else if (!colIsNumeric && !otherIsNumeric) {
+        // Cat vs Cat → Bar chart groupé
+        const crossCounts = {};
         data.forEach((row) => {
-          const key = `${row[col1] ?? "N/A"}|${row[col2] ?? "N/A"}`;
-          groupedCounts[key] = (groupedCounts[key] || 0) + 1;
+          const key = row[col] ?? "N/A";
+          const val = row[otherCol] ?? "N/A";
+          if (!crossCounts[key]) crossCounts[key] = {};
+          crossCounts[key][val] = (crossCounts[key][val] || 0) + 1;
         });
 
-        const datasets = col2Values.map((c2) => ({
-          label: c2,
-          data: col1Labels.map((l1) => groupedCounts[`${l1}|${c2}`] || 0),
-          backgroundColor: `rgba(${Math.floor(Math.random() * 200)},${Math.floor(Math.random() * 200)},${Math.floor(
-            Math.random() * 200
-          )},0.6)`,
+        const labels = Object.keys(crossCounts);
+        const allOtherVals = [...new Set(data.map(r => r[otherCol] ?? "N/A"))];
+        const datasets = allOtherVals.map(val => ({
+          label: val,
+          data: labels.map(l => crossCounts[l][val] || 0),
+          backgroundColor: `rgba(${Math.floor(Math.random()*200)},${Math.floor(Math.random()*200)},${Math.floor(Math.random()*200)},0.6)`
         }));
 
-        return <Bar data={{ labels: col1Labels, datasets }} options={{ plugins: { title: { display: true, text: `${col1} vs ${col2}` } } }} />;
+        charts.push(
+          <div key={`${col}-${otherCol}-bar`} style={styles.chartContainer}>
+            <h3 style={styles.chartTitle}>{col} vs {otherCol}</h3>
+            <div style={styles.chartWrapper}>
+              <Bar data={{ labels, datasets }} options={{ responsive: true, maintainAspectRatio: false }} />
+            </div>
+          </div>
+        );
+      } else {
+        // Cat vs Num → Boxplot (nécessite chartjs-boxplot ou plugin)
+        const catCol = colIsNumeric ? otherCol : col;
+        const numCol = colIsNumeric ? col : otherCol;
+
+        const groups = {};
+        data.forEach((row) => {
+          const cat = row[catCol] ?? "N/A";
+          const num = parseFloat(row[numCol]);
+          if (!isNaN(num)) {
+            if (!groups[cat]) groups[cat] = [];
+            groups[cat].push(num);
+          }
+        });
+
+        const labels = Object.keys(groups);
+const palette = ["#1F77B4", "#2CA02C", "#17BECF", "#AEC7E8", "#98DF8A"];
+const backgroundColors = labels.map((_, i) => palette[i % palette.length]);
+
+const datasets = [{
+  label: numCol,
+  data: labels.map(l => ({
+    min: Math.min(...groups[l]),
+    max: Math.max(...groups[l]),
+    q1: quantile(groups[l], 0.25),
+    median: quantile(groups[l], 0.5),
+    q3: quantile(groups[l], 0.75),
+  })),
+  backgroundColor: backgroundColors
+}];
+
+// Placeholder Bar chart avec couleur par catégorie
+charts.push(
+  <div key={`${col}-${otherCol}-box`} style={styles.chartContainer}>
+    <h3 style={styles.chartTitle}>{catCol} vs {numCol} </h3>
+    <div style={styles.chartWrapper}>
+      <Bar data={{ labels, datasets: datasets.map(d => ({ label: d.label, data: d.data.map(dd => dd.median), backgroundColor: d.backgroundColor })) }}
+           options={{ responsive: true, maintainAspectRatio: false }} />
+    </div>
+  </div>
+);
+
       }
+    });
+  });
 
-      // Bar chart for numeric vs categorical
-      const numCol = col1Numeric ? col1 : col2;
-      const catCol = col1Numeric ? col2 : col1;
-      const catGroups = {};
-      data.forEach((row) => {
-        const cat = row[catCol] ?? "N/A";
-        if (!catGroups[cat]) catGroups[cat] = [];
-        const val = parseFloat(row[numCol]);
-        if (!isNaN(val)) catGroups[cat].push(val);
-      });
-      const labels = Object.keys(catGroups);
-      const dataset = {
-        label: `${numCol} vs ${catCol}`,
-        data: labels.map((l) => {
-          const vals = catGroups[l];
-          const mean = vals.reduce((a, b) => a + b, 0) / vals.length;
-          return mean;
-        }),
-        backgroundColor: "rgba(75,192,192,0.6)",
-      };
-      return <Bar data={{ labels, datasets: [dataset] }} options={{ plugins: { title: { display: false, text: `${numCol} vs ${catCol}` } } }} />;
-    }
+  return <div style={styles.chartsGrid}>{charts}</div>;
+};
 
-    return null;
-  };
+// Fonction utilitaire pour calculer les quantiles
+function quantile(arr, q) {
+  const sorted = [...arr].sort((a,b) => a-b);
+  const pos = (sorted.length-1)*q;
+  const base = Math.floor(pos);
+  const rest = pos-base;
+  if (sorted[base+1] !== undefined) return sorted[base]+rest*(sorted[base+1]-sorted[base]);
+  else return sorted[base];
+}
+
 
   const menuButtons = [
     { id: "statistique", label: "Statistique descriptive", action: () => navigate(`/analyse/${username}/${folder}`) },
@@ -245,7 +277,7 @@ export default function Visualisation() {
           Utilisateur : <strong>{decodedUsername}</strong> | Dossier : <strong>{decodedFolder}</strong>
         </p>
       </header>
-
+      
       <nav style={styles.nav}>
         {menuButtons.map((btn) => (
           <button
@@ -261,7 +293,7 @@ export default function Visualisation() {
           </button>
         ))}
       </nav>
-
+      
       <main style={styles.main}>
         <div style={styles.selectorContainer}>
           <label style={styles.label}>Choisir un fichier :</label>
@@ -274,16 +306,16 @@ export default function Visualisation() {
             ))}
           </select>
         </div>
-
+        
         {columns.length > 0 && (
           <div style={styles.selectorContainer}>
             <label style={styles.label}>Choisir une ou deux colonnes :</label>
             <select
-              multiple
               onChange={handleColsSelect}
               value={selectedCols}
               size={Math.min(4, columns.length)}
               style={styles.multiSelect}
+             
             >
               {columns.map((c) => (
                 <option key={c} value={c}>
@@ -293,8 +325,8 @@ export default function Visualisation() {
             </select>
           </div>
         )}
-
-        <div style={{ marginTop: "40px", maxWidth: "800px" }}>
+        
+        <div style={{ marginTop: "40px", width: "100%" }}>
           {loading ? <p>Chargement...</p> : renderChart()}
         </div>
       </main>
@@ -335,7 +367,9 @@ const styles = {
     cursor: "pointer",
     transition: "all 0.3s ease",
   },
-  main: { marginTop: "20px" },
+  main: {
+    marginTop: "20px"
+  },
   selectorContainer: {
     margin: "20px 0",
     display: "flex",
@@ -362,4 +396,30 @@ const styles = {
     fontSize: "14px",
     backgroundColor: "#fff",
   },
+  chartsGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(2, 1fr)",
+    gap: "20px",
+    width: "100%",
+  },
+  chartContainer: {
+    background: "#fff",
+    padding: "15px",
+    borderRadius: "12px",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+    display: "flex",
+    flexDirection: "column",
+    height: "350px",
+  },
+  chartWrapper: {
+    position: "relative",
+    flex: 1,
+    minHeight: "250px",
+  },
+  chartTitle: {
+    margin: "0 0 10px 0",
+    fontSize: "16px",
+    textAlign: "center",
+    fontWeight: "600",
+  }
 };
