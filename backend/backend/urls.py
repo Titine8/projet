@@ -26,6 +26,8 @@ urlpatterns = [
     path('api/import/', include('import.urls')),
     path("api/statistique/", include("statistique.urls")),
     path('api/visualisation', include('visualisation.urls')),
+    path('api/analyse/', include('analyse.urls')),
+
 ]
 from django.conf import settings
 from django.conf.urls.static import static

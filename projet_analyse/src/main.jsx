@@ -8,6 +8,7 @@ import ImportPage from "./ImportPage";
 import Analyse from "./analyse";
 import Visualisation from "./Visualisation"
 import Prediction from "./prediction";
+import AnalyseTab from "./AnalyseTab";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
@@ -20,6 +21,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         <Route path="/analyse/:username/:folder" element={<Analyse />}/>
          <Route path="/visualisation/:username/:folder" element={<Visualisation />} />
          <Route path="/prediction/:username/:folder" element={<Prediction />} />
+         <Route path="/analysetab/:username/:folder" element={<AnalyseTab />} />
          </Routes>
     </BrowserRouter>
   </React.StrictMode>

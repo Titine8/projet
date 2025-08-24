@@ -265,7 +265,7 @@ function quantile(arr, q) {
   const menuButtons = [
     { id: "statistique", label: "Statistique descriptive", action: () => navigate(`/analyse/${username}/${folder}`) },
     { id: "visualisation", label: "Visualisation", action: () => navigate(`/visualisation/${username}/${folder}`) },
-    { id: "analyse", label: "Analyse de donnée", action: () => alert("Bientôt disponible 🚀") },
+    { id: "analyse", label: "Analyse de donnée", action: () => navigate(`/analysetab/${username}/${folder}`) },
     { id: "prediction", label: "Prédiction", action: () => navigate(`/prediction/${username}/${folder}`) },
   ];
 

@@ -150,7 +150,7 @@ export default function Prediction() {
     {
       id: "analyse",
       label: "Analyse de donnée",
-      action: () => alert("Bientôt disponible 🚀"),
+      action: () => navigate(`/analysetab/${username}/${folder}`),
     },
     {
       id: "prediction",
