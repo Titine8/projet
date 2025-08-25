@@ -47,6 +47,8 @@ INSTALLED_APPS = [
     'import',
     'statistique',
     'visualisation',
+    'analyse',
+    'prediction',
 ]
 
 REST_FRAMEWORK = {

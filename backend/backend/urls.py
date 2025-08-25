@@ -27,6 +27,7 @@ urlpatterns = [
     path("api/statistique/", include("statistique.urls")),
     path('api/visualisation', include('visualisation.urls')),
     path('api/analyse/', include('analyse.urls')),
+    path('api/prediction/', include('prediction.urls')),
 
 ]
 from django.conf import settings

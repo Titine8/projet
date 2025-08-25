@@ -14,6 +14,7 @@ export default function AnalyseTab() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [correlationMatrix, setCorrelationMatrix] = useState(null);
+  const [spearmanMatrix, setSpearmanMatrix] = useState(null);
 
   const token = localStorage.getItem("accessToken");
 
@@ -25,18 +26,15 @@ export default function AnalyseTab() {
   const fetchFiles = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(
-        "http://localhost:8000/api/statistique/files/",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-          params: { username: decodedUsername, folder: decodedFolder },
-        }
-      );
+      const res = await axios.get("http://localhost:8000/api/statistique/files/", {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { username: decodedUsername, folder: decodedFolder },
+      });
 
       const fetchedFiles = res.data.files || [];
       setFiles(fetchedFiles);
 
-      const defaultFile = fetchedFiles.find(f => f.startsWith("file_"));
+      const defaultFile = fetchedFiles.find((f) => f.startsWith("file_"));
       if (defaultFile) {
         setSelectedFile(defaultFile);
         handleFileSelect({ target: { value: defaultFile } });
@@ -55,18 +53,16 @@ export default function AnalyseTab() {
     setColumns([]);
     setData([]);
     setCorrelationMatrix(null);
+    setSpearmanMatrix(null);
 
     if (!file) return;
 
     setLoading(true);
     try {
-      const res = await axios.get(
-        "http://localhost:8000/api/statistique/file-data/",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-          params: { username: decodedUsername, folder: decodedFolder, file },
-        }
-      );
+      const res = await axios.get("http://localhost:8000/api/statistique/file-data/", {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { username: decodedUsername, folder: decodedFolder, file },
+      });
 
       setData(res.data.preview || []);
       if (res.data.columns) setColumns(res.data.columns);
@@ -79,16 +75,12 @@ export default function AnalyseTab() {
 
   const encodeFileInBackground = async (file) => {
     try {
-      const res = await axios.get(
-        "http://localhost:8000/api/analyse/encode/",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-          params: { username: decodedUsername, folder: decodedFolder, file },
-        }
-      );
+      const res = await axios.get("http://localhost:8000/api/analyse/encode/", {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { username: decodedUsername, folder: decodedFolder, file },
+      });
 
-      const encodedFileName =
-        res.data.encoded_file || file.replace("file_", "encodage_");
+      const encodedFileName = res.data.encoded_file || file.replace("file_", "encodage_");
       generateCorrelationMatrix(encodedFileName);
     } catch (err) {
       console.error("Erreur lors de l'encodage automatique:", err);
@@ -97,21 +89,15 @@ export default function AnalyseTab() {
 
   const generateCorrelationMatrix = async (encodedFile) => {
     try {
-      const res = await axios.get(
-        "http://localhost:8000/api/analyse/correlation/",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-          params: {
-            username: decodedUsername,
-            folder: decodedFolder,
-            file: encodedFile,
-          },
-        }
-      );
+      const res = await axios.get("http://localhost:8000/api/analyse/correlation/", {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { username: decodedUsername, folder: decodedFolder, file: encodedFile },
+      });
 
-      setCorrelationMatrix(res.data.correlation_matrix);
+      setCorrelationMatrix(res.data.pearson);
+      setSpearmanMatrix(res.data.spearman);
     } catch (err) {
-      console.error("Erreur lors de la génération de la matrice de corrélation:", err);
+      console.error("Erreur lors de la génération des matrices:", err);
     }
   };
 
@@ -122,13 +108,65 @@ export default function AnalyseTab() {
     { id: "prediction", label: "Prédiction", action: () => navigate(`/prediction/${username}/${folder}`) },
   ];
 
-  // Dégradé bleu → blanc → rouge
   const getCellColor = (val) => {
     const opacity = Math.min(Math.abs(val), 1);
-    if (val > 0) return `rgba(33, 150, 243, ${opacity})`; // bleu
-    if (val < 0) return `rgba(244, 67, 54, ${opacity})`;   // rouge
-    return "#f0f0f0"; // neutre
+    if (val > 0) return `rgba(33, 150, 243, ${opacity})`;
+    if (val < 0) return `rgba(244, 67, 54, ${opacity})`;
+    return "#f0f0f0";
   };
+
+  const renderMatrix = (matrix) => (
+    <div
+      style={{
+        display: "inline-block",
+        borderRadius: 12,
+        overflow: "hidden",
+        boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+      }}
+    >
+      <table style={{ borderCollapse: "collapse", fontSize: 11, minWidth: "400px" }}>
+        <thead>
+          <tr>
+            <th style={{ ...styles.th, backgroundColor: "#1b4d3e", color: "white" }}></th>
+            {Object.keys(matrix).map((col) => (
+              <th key={col} style={{ ...styles.th, backgroundColor: "#1b4d3e", color: "white", padding: "4px" }}>
+                {col}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {Object.entries(matrix).map(([rowKey, row]) => (
+            <tr key={rowKey}>
+              <th style={{ ...styles.th, backgroundColor: "#1b4d3e", color: "white", padding: "4px" }}>{rowKey}</th>
+              {Object.entries(row).map(([colKey, val]) => {
+                const bgColor = getCellColor(val);
+                const textColor = Math.abs(val) > 0.5 ? "white" : "black";
+                return (
+                  <td
+                    key={colKey}
+                    style={{
+                      width: 30,
+                      height: 30,
+                      textAlign: "center",
+                      backgroundColor: bgColor,
+                      color: textColor,
+                      fontWeight: 600,
+                      borderRadius: 4,
+                      border: "1px solid #e0e0e0",
+                      padding: 2,
+                    }}
+                  >
+                    {val.toFixed(2)}
+                  </td>
+                );
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
 
   return (
     <div style={styles.page}>
@@ -159,64 +197,25 @@ export default function AnalyseTab() {
       <main style={styles.main}>
         <div style={styles.selectorContainer}>
           <label style={styles.label}>Choisir un fichier :</label>
-          <select
-            style={styles.select}
-            onChange={handleFileSelect}
-            value={selectedFile}
-            disabled
-          >
+          <select style={styles.select} onChange={handleFileSelect} value={selectedFile} disabled>
             <option value="">-- Sélectionner --</option>
             {files.map((f) => (
-              <option key={f} value={f}>{f}</option>
+              <option key={f} value={f}>
+                {f}
+              </option>
             ))}
           </select>
         </div>
 
-        {correlationMatrix && (
-          <div style={{ marginTop: 20, overflow: "auto", maxWidth: "100%", maxHeight: "300px" }}>
-            <h3 style={{ marginBottom: 10, fontSize: 16 }}>Matrice de corrélation</h3>
-            <div style={{
-              display: "inline-block",
-              borderRadius: 12,
-              overflow: "hidden",
-              boxShadow: "0 4px 15px rgba(0,0,0,0.1)"
-            }}>
-              <table style={{ borderCollapse: "collapse", fontSize: 11, minWidth: "400px" }}>
-                <thead>
-                  <tr>
-                    <th style={{ ...styles.th, backgroundColor: "#1b4d3e", color: "white" }}></th>
-                    {Object.keys(correlationMatrix).map((col) => (
-                      <th key={col} style={{ ...styles.th, backgroundColor: "#1b4d3e", color: "white", padding: '4px' }}>{col}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {Object.entries(correlationMatrix).map(([rowKey, row]) => (
-                    <tr key={rowKey}>
-                      <th style={{ ...styles.th, backgroundColor: "#1b4d3e", color: "white", padding: '4px' }}>{rowKey}</th>
-                      {Object.entries(row).map(([colKey, val]) => {
-                        const bgColor = getCellColor(val);
-                        const textColor = Math.abs(val) > 0.5 ? "white" : "black";
-                        return (
-                          <td key={colKey} style={{
-                            width: 30,
-                            height: 30,
-                            textAlign: "center",
-                            backgroundColor: bgColor,
-                            color: textColor,
-                            fontWeight: 600,
-                            borderRadius: 4,
-                            border: "1px solid #e0e0e0",
-                            padding: 2
-                          }}>
-                            {val.toFixed(2)}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+        {correlationMatrix && spearmanMatrix && (
+          <div style={{ display: "flex", gap: "20px", marginTop: 20, flexWrap: "wrap" }}>
+            <div style={{ overflow: "auto", maxWidth: "100%", maxHeight: "300px" }}>
+              <h3 style={{ marginBottom: 10, fontSize: 16 }}>Matrice de corrélation (Pearson)</h3>
+              {renderMatrix(correlationMatrix)}
+            </div>
+            <div style={{ overflow: "auto", maxWidth: "100%", maxHeight: "300px" }}>
+              <h3 style={{ marginBottom: 10, fontSize: 16 }}>Matrice de corrélation (Spearman)</h3>
+              {renderMatrix(spearmanMatrix)}
             </div>
           </div>
         )}
@@ -235,5 +234,4 @@ const styles = {
   label: { fontWeight: 600, fontSize: 14, color: "#333" },
   select: { padding: "8px 12px", borderRadius: 10, border: "1px solid #ccc", backgroundColor: "#fff", fontSize: 13, transition: "all 0.2s ease" },
   th: { padding: 6, border: "1px solid #ddd", textAlign: "center", fontSize: 11, fontWeight: 600 },
-  td: { padding: 2, border: "1px solid #ddd", textAlign: "center", fontSize: 11 },
 };

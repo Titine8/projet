@@ -61,12 +61,11 @@ def encode_all_to_numeric(request):
 def correlation_matrix(request):
     username = request.GET.get("username")
     folder = request.GET.get("folder")
-    file_name = request.GET.get("file")  # On attend le fichier encodé ici
+    file_name = request.GET.get("file")  # fichier encodé attendu
 
     if not username or not folder or not file_name:
         return JsonResponse({"error": "Paramètres manquants"}, status=400)
 
-    # Vérification du préfixe encodage_
     if not file_name.startswith("encodage_"):
         return JsonResponse({"error": "Le fichier doit être un fichier encodé (préfixe encodage_)"},
                             status=400)
@@ -86,11 +85,16 @@ def correlation_matrix(request):
     if numeric_df.empty:
         return JsonResponse({"error": "Aucune colonne numérique pour la corrélation"}, status=400)
 
-    corr_matrix = numeric_df.corr()
-    corr_json = corr_matrix.to_dict()
+    # Matrice de corrélation Pearson (défaut)
+    pearson_corr = numeric_df.corr(method='pearson').to_dict()
+
+    # Matrice de corrélation Spearman (non-linéaire)
+    spearman_corr = numeric_df.corr(method='spearman').to_dict()
 
     return JsonResponse({
-        "message": "Matrice de corrélation générée",
-        "correlation_matrix": corr_json,
+        "message": "Matrices de corrélation générées",
+        "pearson": pearson_corr,
+        "spearman": spearman_corr,
         "columns": list(numeric_df.columns)
     })
+

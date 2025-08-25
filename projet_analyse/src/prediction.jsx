@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+
 import axios from "axios";
+
 
 export default function Prediction() {
   const { username, folder } = useParams();
@@ -18,6 +20,11 @@ export default function Prediction() {
   // 🔮 Prédiction
   const [predictionOptions, setPredictionOptions] = useState([]);
   const [selectedPrediction, setSelectedPrediction] = useState("");
+  const [dataSplitDone, setDataSplitDone] = useState(false);
+  const [modelScores, setModelScores] = useState({});
+  const [bestModel, setBestModel] = useState("");
+  const [selectedModel, setSelectedModel] = useState("");
+
 
   const token = localStorage.getItem("accessToken");
 
@@ -26,30 +33,45 @@ export default function Prediction() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const fetchFiles = async () => {
-  setLoading(true);
-  try {
-    const res = await axios.get("http://localhost:8000/api/statistique/files/", {
-      headers: { Authorization: `Bearer ${token}` },
-      params: { username: decodedUsername, folder: decodedFolder },
-    });
+  const encodeFileInBackground = async (file) => {
+    try {
+      const res = await axios.get("http://localhost:8000/api/analyse/encode/", {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { username: decodedUsername, folder: decodedFolder, file },
+      });
 
-    const fetchedFiles = res.data.files || [];
-    setFiles(fetchedFiles);
-
-    // Sélectionner par défaut le fichier commençant par "file_"
-    const defaultFile = fetchedFiles.find(f => f.startsWith("file_"));
-    if (defaultFile) {
-      setSelectedFile(defaultFile);
-      handleFileSelect({ target: { value: defaultFile } }); // charger les données
+      const encodedFileName = res.data.encoded_file || file.replace("file_", "encodage_");
+      generateCorrelationMatrix(encodedFileName);
+    } catch (err) {
+      console.error("Erreur lors de l'encodage automatique:", err);
     }
+  };
 
-  } catch (err) {
-    console.error(err);
-  } finally {
-    setLoading(false);
-  }
-};
+  const fetchFiles = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get("http://localhost:8000/api/statistique/files/", {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { username: decodedUsername, folder: decodedFolder },
+      });
+
+      const fetchedFiles = res.data.files || [];
+      setFiles(fetchedFiles);
+
+      // Sélectionner par défaut le fichier commençant par "file_"
+      const defaultFile = fetchedFiles.find(f => f.startsWith("file_"));
+      if (defaultFile) {
+        setSelectedFile(defaultFile);
+        handleFileSelect({ target: { value: defaultFile } }); // charger les données
+        encodeFileInBackground(defaultFile);
+      }
+
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleFileSelect = async (e) => {
     const file = e.target.value;
@@ -59,6 +81,7 @@ export default function Prediction() {
     setData([]);
     setPredictionOptions([]);
     setSelectedPrediction("");
+    setDataSplitDone(false); // ← réinitialiser
 
     if (!file) return;
 
@@ -85,6 +108,7 @@ export default function Prediction() {
     const col = e.target.value;
     setSelectedCol(col);
     setSelectedPrediction("");
+    setDataSplitDone(false); // ← réinitialiser
 
     if (!col || data.length === 0) {
       setPredictionOptions([]);
@@ -113,27 +137,60 @@ export default function Prediction() {
     setPredictionOptions(options);
   };
 
- const handleFindModel = async () => {
-  if (!selectedFile || !selectedCol || !selectedPrediction) return;
+  const handleFindModel = async () => {
+    if (!selectedFile || !selectedCol || !selectedPrediction) return;
 
-  setLoading(true);
-  try {
-    const res = await axios.get(
-      `http://localhost:8000/api/prediction/${decodedUsername}/${decodedFolder}/${selectedFile}/${selectedCol}/${selectedPrediction}/`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
+    setLoading(true);
+    try {
+      const res = await axios.get(
+        `http://localhost:8000/api/prediction/find_best_regression_model/${decodedUsername}/${decodedFolder}/${selectedCol}/`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
-    // Ici tu peux gérer la réponse, par exemple afficher le modèle recommandé
-    alert(`Modèle recommandé : ${res.data.best_model}`);
-  } catch (err) {
-    console.error(err);
-    alert("Erreur lors de la recherche du modèle.");
-  } finally {
-    setLoading(false);
-  }
-};
+      setModelScores(res.data.scores);
+      setBestModel(res.data.best_model);
+
+    } catch (err) {
+      console.error(err);
+      alert("Erreur lors de la recherche du modèle.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+
+  const handleSplitData = async () => {
+    if (!selectedFile || !selectedCol) {
+      alert("Veuillez sélectionner un fichier et une colonne cible.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await axios.post(
+        "http://localhost:8000/api/prediction/split-data/",
+        {
+          username: decodedUsername,
+          folder: decodedFolder,
+          file: selectedFile,
+          target: selectedCol,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      alert(`Données divisées avec succès !\nFichiers créés :\n${res.data.files.join("\n")}`);
+      setDataSplitDone(true); // <-- active le nouveau bouton
+    } catch (err) {
+      console.error(err);
+      alert("Erreur lors de la division des données. Vérifiez la console.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
 
   const menuButtons = [
@@ -186,6 +243,12 @@ export default function Prediction() {
       </nav>
 
       <main style={styles.main}>
+
+        {loading && (
+          <p style={{ color: "blue", fontWeight: "bold" }}>
+            Traitement en cours...
+          </p>
+        )}
         {/* Sélecteur de fichier */}
         <div style={styles.selectorContainer}>
           <label style={styles.label}>Choisir un fichier :</label>
@@ -233,14 +296,90 @@ export default function Prediction() {
           </div>
         )}
 
-        {/* Bouton "Chercher le modèle idéal" */}
-        {selectedPrediction && (
+        {/* Bouton Diviser les données pour Régression/Classification */}
+        {selectedPrediction && (selectedPrediction === "Régression" || selectedPrediction === "Classification") && (
           <div style={styles.selectorContainer}>
-            <button style={styles.findButton} onClick={handleFindModel}>
-              🔍 Chercher le modèle idéal
+            <button style={styles.findButton} onClick={handleSplitData}>
+              ✂️ Diviser mes données (80/20)
             </button>
           </div>
         )}
+
+        {/* Bouton Trouver le modèle idéal pour Régression */}
+        {selectedPrediction &&
+          selectedPrediction === "Régression" &&
+          dataSplitDone && (
+            <div style={styles.selectorContainer}>
+              <button style={styles.findButton} onClick={handleFindModel}>
+                🔍 Trouver le modèle de régréssion idéal
+              </button>
+            </div>
+          )}
+
+        {/* Sélection du modèle */}
+        {Object.keys(modelScores).length > 0 && (
+          <div
+            style={{
+              marginTop: "20px",
+              padding: "20px",
+              backgroundColor: "#fff",
+              borderRadius: "12px",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+              textAlign: "center",       // <-- centre le texte
+            }}
+          >
+            <h3 style={{ marginBottom: "15px" }}>📊 Sélectionnez le modèle à utiliser :</h3>
+            {Object.entries(modelScores).map(([model, score]) => (
+              <label
+                key={model}
+                style={{
+                  display: "block",
+                  margin: "12px auto",
+                  cursor: "pointer",
+                  fontSize: "16px",        // <-- texte plus visible
+                  fontWeight: "600",       // <-- gras
+                  maxWidth: "300px"
+                }}
+              >
+                <input
+                  type="radio"
+                  name="selectedModel"
+                  value={model}
+                  checked={selectedModel === model}
+                  onChange={() => setSelectedModel(model)}
+                  style={{ marginRight: "12px" }}
+                />
+                {model}: {score}
+                {model === bestModel && (
+                  <span style={{ color: "green", marginLeft: "8px" }}>⭐ Meilleur modèle</span>
+                )}
+              </label>
+            ))}
+          </div>
+        )}
+
+
+
+        {/* Bouton Trouver le modèle idéal pour Classification */}
+        {selectedPrediction === "Classification" && dataSplitDone && (
+          <div style={styles.selectorContainer}>
+            <button style={styles.findButton} onClick={handleFindModel}>
+              🔍 Trouver le modèle de classification idéal
+            </button>
+          </div>
+        )}
+
+        {/* Bouton Trouver le modèle idéal pour Clustering */}
+        {selectedPrediction === "Clustering" && (
+          <div style={styles.selectorContainer}>
+            <button style={styles.findButton} onClick={handleFindModel}>
+              🔍 Trouver le modèle de clustering idéal
+            </button>
+          </div>
+        )}
+
+
+
       </main>
     </div>
   );
