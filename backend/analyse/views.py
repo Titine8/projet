@@ -179,6 +179,16 @@ import os
 from django.conf import settings
 from sentence_transformers import SentenceTransformer
 import faiss
+import os
+import pickle
+import faiss
+import numpy as np
+from sentence_transformers import SentenceTransformer
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from django.conf import settings
+from ollama import Client
+
 
 API_KEY = "45be6155dee04ec1bc5a8b82900600e2.eGGiJpghbTTumj-LV7Y-sVtM"
 
@@ -187,14 +197,32 @@ client = Client(
     headers={'Authorization': 'Bearer ' + API_KEY}
 )
 
-# 🔹 Modèle pour embeddings
 embed_model = SentenceTransformer("all-MiniLM-L6-v2")
 
+def save_index(index, filenames, folder_path):
+    faiss.write_index(index, os.path.join(folder_path, "faiss.index"))
+    with open(os.path.join(folder_path, "filenames.pkl"), "wb") as f:
+        pickle.dump(filenames, f)
+    print("✅ Index FAISS sauvegardé sur disque.")
+
+def load_index(folder_path):
+    try:
+        index = faiss.read_index(os.path.join(folder_path, "faiss.index"))
+        with open(os.path.join(folder_path, "filenames.pkl"), "rb") as f:
+            filenames = pickle.load(f)
+        print("✅ Index FAISS chargé depuis le disque.")
+        return index, filenames
+    except Exception:
+        print("⚠️ Aucun index FAISS trouvé, reconstruction nécessaire.")
+        return None, None
+
 def build_faiss_index(doc_texts):
+    print("🔹 Construction de l'index FAISS...")
     embeddings = embed_model.encode(doc_texts, convert_to_numpy=True)
     dim = embeddings.shape[1]
     index = faiss.IndexFlatL2(dim)
     index.add(embeddings)
+    print(f"🔹 Index construit avec {len(doc_texts)} documents.")
     return index, embeddings
 
 @api_view(["POST"])
@@ -202,6 +230,8 @@ def chatbot(request):
     user_message = request.data.get("message", "")
     username = request.data.get("username")
     folder = request.data.get("folder")
+
+    print(f"\n💬 Nouvelle requête : '{user_message}' de {username}/{folder}")
 
     if not username or not folder or not user_message:
         return Response({
@@ -227,6 +257,7 @@ def chatbot(request):
                     content = f.read()
                 doc_texts.append(content)
                 filenames.append(txt_file)
+                print(f"📄 Fichier chargé : {txt_file} ({len(content)} caractères)")
             except Exception as e:
                 print(f"⚠️ Impossible de lire {txt_file}: {e}")
 
@@ -236,18 +267,39 @@ def chatbot(request):
             "status": "error"
         })
 
-    # 🔹 Construire l'index FAISS
-    index, embeddings = build_faiss_index(doc_texts)
+    # 🔹 Charger l'index FAISS existant si disponible
+    index, saved_filenames = load_index(analyse_folder)
+
+    # 🔹 Reconstruire l'index si nouveaux fichiers ajoutés ou pas d'index
+    if index is None or set(filenames) != set(saved_filenames):
+        print("⚡ Reconstruction de l'index FAISS...")
+        index, embeddings = build_faiss_index(doc_texts)
+        save_index(index, filenames, analyse_folder)
+    else:
+        print("🔹 Index FAISS existant utilisé.")
 
     # 🔹 Rechercher les documents les plus pertinents
     query_embedding = embed_model.encode([user_message], convert_to_numpy=True)
-    k = min(3, len(doc_texts))  # top 3
+    k = min(3, len(filenames))
     distances, indices = index.search(query_embedding, k)
 
-    # 🔹 Récupérer le contexte filtré
+    print("🔹 Résultats de la recherche :")
+    for i, idx in enumerate(indices[0]):
+        print(f" - {filenames[idx]} | distance = {distances[0][i]}")
+
+    # 🔹 Score de similarité minimal (ex: distance < 0.5)
+    threshold = 20
     context = ""
-    for idx in indices[0]:
+    for i, idx in enumerate(indices[0]):
+        if distances[0][i] > threshold:
+            print(f"❌ Ignoré {filenames[idx]} (distance > {threshold})")
+            continue
+        print(f"✅ Utilisé {filenames[idx]} dans le contexte")
         context += f"--- Contenu de {filenames[idx]} ---\n{doc_texts[idx]}\n\n"
+
+    if not context:
+        context = "Aucune information pertinente trouvée dans les documents."
+        print("⚠️ Aucun document pertinent trouvé pour cette requête.")
 
     # 🔹 Construire le message pour Ollama
     messages = [
@@ -267,6 +319,7 @@ def chatbot(request):
         for part in client.chat('gpt-oss:120b-cloud', messages=messages, stream=True):
             response_text += part['message']['content']
 
+        print(f"✅ Réponse générée : {response_text.strip()}")
         return Response({
             "reply": response_text.strip(),
             "status": "success"

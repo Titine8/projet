@@ -1,0 +1,19 @@
+Résumé global du dataset :
+- Nombre de lignes : 3547
+- Nombre de colonnes : 15
+- Types de colonnes :
+  * hour_of_day: int64, valeurs uniques : 17
+  * cash_type: object, valeurs uniques : 1
+  * money: float64, valeurs uniques : 13
+  * coffee_name: object, valeurs uniques : 8
+  * Time_of_Day: object, valeurs uniques : 3
+  * Weekday: object, valeurs uniques : 7
+  * Month_name: object, valeurs uniques : 12
+  * Weekdaysort: int64, valeurs uniques : 7
+  * Monthsort: int64, valeurs uniques : 12
+  * Date_jour: int64, valeurs uniques : 31
+  * Date_mois: object, valeurs uniques : 12
+  * Date_annee: int64, valeurs uniques : 2
+  * Time_heure: int64, valeurs uniques : 17
+  * Time_minute: int64, valeurs uniques : 60
+  * Time_seconde: int64, valeurs uniques : 60
