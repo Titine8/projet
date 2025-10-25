@@ -1,0 +1,138 @@
+Pour la colonne 'produit':
+- Type de colonne: cat
+- Nombre de valeurs manquantes: 0
+- Nombre de valeurs non manquantes: 86
+- Nombre de catégories uniques: 86
+- Mode: Armoire archivage
+- Fréquences des catégories: {'Ordinateur portable': 1.2, 'Smartphone': 1.2, 'Chaise bureau': 1.2, 'Casque audio': 1.2, 'Imprimante': 1.2, 'Tablette': 1.2, 'Bureau': 1.2, 'Écran 24"': 1.2, 'Clavier': 1.2, 'Souris': 1.2, 'Enceinte Bluetooth': 1.2, 'Lampe de bureau': 1.2, 'Disque dur externe': 1.2, 'Logiciel bureautique': 1.2, 'Caméra web': 1.2, 'Fauteuil directeur': 1.2, 'Serveur': 1.2, 'Tableau blanc': 1.2, 'Routeur WiFi': 1.2, 'Scanner': 1.2, 'Armoire classeur': 1.2, 'Smartwatch': 1.2, 'Microphone': 1.2, 'Étagère': 1.2, "Station d'accueil": 1.2, 'Tapis de souris': 1.2, 'Vidéoprojecteur': 1.2, 'Clé USB 64Go': 1.2, 'Table basse': 1.2, 'Casque VR': 1.2, 'Imprimante laser': 1.2, 'Câbles HDMI': 1.2, 'Table réunion': 1.2, 'Drone': 1.2, 'Enceinte connectée': 1.2, 'Livreur de documents': 1.2, 'Moniteur 27"': 1.2, 'Chaise conférence': 1.2, 'Switch réseau': 1.2, 'Laptop stand': 1.2, 'Serveur NAS': 1.2, 'Lampadaire': 1.2, 'Webcam 4K': 1.2, 'Clavier mécanique': 1.2, 'Armoire archivage': 1.2, 'Tablette graphique': 1.2, 'UPS': 1.2, 'Poubelle bureau': 1.2, 'PC Gamer': 1.2, 'Écran 32"': 1.2, 'Canapé bureau': 1.2, 'Hub USB-C': 1.2, 'Serveur rack': 1.2, 'Paravent': 1.2, 'Caméra surveillance': 1.2, 'Support écran': 1.2, 'Table modulable': 1.2, 'Drone pro': 1.2, 'Enceinte réunion': 1.2, 'Pèse-lettres': 1.2, 'Workstation': 1.2, 'Bibliothèque': 1.2, 'Switch PoE': 1.2, 'Chargeur multiple': 1.2, 'Serveur cloud': 1.2, 'Pouf': 1.2, 'Caméra 360°': 1.2, 'Support laptop': 1.2, 'Table conférence': 1.2, 'Drone FPV': 1.2, 'Barre de son': 1.2, 'Trieur courrier': 1.2, 'PC All-in-One': 1.2, 'Écran incurvé': 1.2, "Canapé d'accueil": 1.2, 'Dock station': 1.2, 'Serveur backup': 1.2, 'Paravent acoustique': 1.2, 'Kit conférence': 1.2, 'Organisateur câbles': 1.2, 'Table réglable': 1.2, 'Drone mini': 1.2, 'Soundbar': 1.2, 'Perforatrice': 1.2, 'Ultrabook': 1.2, 'Écran portable': 1.2}
+
+Pour la colonne 'categorie':
+- Type de colonne: cat
+- Nombre de valeurs manquantes: 0
+- Nombre de valeurs non manquantes: 86
+- Nombre de catégories uniques: 5
+- Mode: High-Tech
+- Fréquences des catégories: {'High-Tech': 54.7, 'Mobilier': 23.3, 'Accessoire': 11.600000000000001, 'Bureautique': 9.3, 'Logiciel': 1.2}
+
+Pour la colonne 'quantite':
+- Type de colonne: num
+- Nombre de valeurs manquantes: 0
+- Nombre de valeurs non manquantes: 86
+- Minimum: 1.0
+- Maximum: 15.0
+- Moyenne: 2.627906976744186
+- Médiane: 2.0
+- Mode: 1
+- Écart-type: 2.38646433836831
+- Variance: 5.695212038303695
+- Skewness: 2.635370255776075
+- Kurtosis: 8.65275785241176
+- Étendue: 14.0
+- Total: 226.0
+- Quartiles: {'Q1': 1.0, 'Q2': 2.0, 'Q3': 3.0}
+- Distribution par bins: {'(0.985, 2.4]': 56, '(2.4, 3.8]': 12, '(3.8, 5.2]': 10, '(5.2, 6.6]': 3, '(6.6, 8.0]': 2, '(9.4, 10.8]': 2, '(13.6, 15.0]': 1, '(8.0, 9.4]': 0, '(10.8, 12.2]': 0, '(12.2, 13.6]': 0}
+
+Pour la colonne 'prix_unitaire':
+- Type de colonne: num
+- Nombre de valeurs manquantes: 0
+- Nombre de valeurs non manquantes: 86
+- Minimum: 8.0
+- Maximum: 4500.0
+- Moyenne: 550.453488372093
+- Médiane: 209.5
+- Mode: 89.0
+- Écart-type: 807.7912755594982
+- Variance: 652526.7448700411
+- Skewness: 2.624129555340815
+- Kurtosis: 7.662668667199588
+- Étendue: 4492.0
+- Total: 47339.0
+- Quartiles: {'Q1': 86.0, 'Q2': 209.5, 'Q3': 672.5}
+- Distribution par bins: {'(3.507, 457.2]': 61, '(457.2, 906.4]': 10, '(906.4, 1355.6]': 6, '(1355.6, 1804.8]': 3, '(2254.0, 2703.2]': 2, '(3152.4, 3601.6]': 2, '(1804.8, 2254.0]': 1, '(4050.8, 4500.0]': 1, '(2703.2, 3152.4]': 0, '(3601.6, 4050.8]': 0}
+
+Pour la colonne 'montant_total':
+- Type de colonne: num
+- Nombre de valeurs manquantes: 0
+- Nombre de valeurs non manquantes: 86
+- Minimum: 45.0
+- Maximum: 4500.0
+- Moyenne: 696.3255813953489
+- Médiane: 419.0
+- Mode: 1200.0
+- Écart-type: 764.9829439368984
+- Variance: 585198.904514364
+- Skewness: 2.5948577784445592
+- Kurtosis: 8.004960310223431
+- Étendue: 4455.0
+- Total: 59884.0
+- Quartiles: {'Q1': 211.5, 'Q2': 419.0, 'Q3': 850.0}
+- Distribution par bins: {'(40.544000000000004, 490.5]': 46, '(490.5, 936.0]': 23, '(936.0, 1381.5]': 8, '(1381.5, 1827.0]': 3, '(2272.5, 2718.0]': 2, '(3163.5, 3609.0]': 2, '(1827.0, 2272.5]': 1, '(4054.5, 4500.0]': 1, '(2718.0, 3163.5]': 0, '(3609.0, 4054.5]': 0}
+
+Pour la colonne 'client':
+- Type de colonne: cat
+- Nombre de valeurs manquantes: 0
+- Nombre de valeurs non manquantes: 86
+- Nombre de catégories uniques: 86
+- Mode: Entreprise A
+- Fréquences des catégories: {'Entreprise A': 1.2, 'Particulier B': 1.2, 'Entreprise C': 1.2, 'Particulier D': 1.2, 'Entreprise E': 1.2, 'Particulier F': 1.2, 'Entreprise G': 1.2, 'Entreprise H': 1.2, 'Particulier I': 1.2, 'Entreprise J': 1.2, 'Particulier K': 1.2, 'Entreprise L': 1.2, 'Particulier M': 1.2, 'Entreprise N': 1.2, 'Particulier O': 1.2, 'Entreprise P': 1.2, 'Entreprise Q': 1.2, 'Particulier R': 1.2, 'Entreprise S': 1.2, 'Particulier T': 1.2, 'Entreprise U': 1.2, 'Particulier V': 1.2, 'Entreprise W': 1.2, 'Particulier X': 1.2, 'Entreprise Y': 1.2, 'Particulier Z': 1.2, 'Entreprise AA': 1.2, 'Particulier BB': 1.2, 'Entreprise CC': 1.2, 'Particulier DD': 1.2, 'Entreprise EE': 1.2, 'Particulier FF': 1.2, 'Entreprise GG': 1.2, 'Particulier HH': 1.2, 'Entreprise II': 1.2, 'Particulier JJ': 1.2, 'Entreprise KK': 1.2, 'Particulier LL': 1.2, 'Entreprise MM': 1.2, 'Particulier NN': 1.2, 'Entreprise OO': 1.2, 'Particulier PP': 1.2, 'Entreprise QQ': 1.2, 'Particulier RR': 1.2, 'Entreprise SS': 1.2, 'Particulier TT': 1.2, 'Entreprise UU': 1.2, 'Particulier VV': 1.2, 'Entreprise WW': 1.2, 'Particulier XX': 1.2, 'Entreprise YY': 1.2, 'Particulier ZZ': 1.2, 'Entreprise AAA': 1.2, 'Particulier BBB': 1.2, 'Entreprise CCC': 1.2, 'Particulier DDD': 1.2, 'Entreprise EEE': 1.2, 'Particulier FFF': 1.2, 'Entreprise GGG': 1.2, 'Particulier HHH': 1.2, 'Entreprise III': 1.2, 'Particulier JJJ': 1.2, 'Entreprise KKK': 1.2, 'Particulier LLL': 1.2, 'Entreprise MMM': 1.2, 'Particulier NNN': 1.2, 'Entreprise OOO': 1.2, 'Particulier PPP': 1.2, 'Entreprise QQQ': 1.2, 'Particulier RRR': 1.2, 'Entreprise SSS': 1.2, 'Particulier TTT': 1.2, 'Entreprise UUU': 1.2, 'Particulier VVV': 1.2, 'Entreprise WWW': 1.2, 'Particulier XXX': 1.2, 'Entreprise YYY': 1.2, 'Particulier ZZZ': 1.2, 'Entreprise AAAA': 1.2, 'Particulier BBBB': 1.2, 'Entreprise CCCC': 1.2, 'Particulier DDDD': 1.2, 'Entreprise EEEE': 1.2, 'Particulier FFFF': 1.2, 'Entreprise GGGG': 1.2, 'Particulier HHHH': 1.2}
+
+Pour la colonne 'region':
+- Type de colonne: cat
+- Nombre de valeurs manquantes: 0
+- Nombre de valeurs non manquantes: 86
+- Nombre de catégories uniques: 12
+- Mode: Auvergne-Rhône-Alpes
+- Fréquences des catégories: {'Île-de-France': 9.3, 'Auvergne-Rhône-Alpes': 9.3, 'PACA': 8.1, 'Occitanie': 8.1, 'Nouvelle-Aquitaine': 8.1, 'Bretagne': 8.1, 'Hauts-de-France': 8.1, 'Normandie': 8.1, 'Centre-Val de Loire': 8.1, 'Bourgogne-Franche-Comté': 8.1, 'Pays de la Loire': 8.1, 'Grand Est': 8.1}
+
+Pour la colonne 'vendeur':
+- Type de colonne: cat
+- Nombre de valeurs manquantes: 0
+- Nombre de valeurs non manquantes: 86
+- Nombre de catégories uniques: 12
+- Mode: Martin
+- Fréquences des catégories: {'Martin': 9.3, 'Sophie': 9.3, 'Thomas': 8.1, 'Laura': 8.1, 'Pierre': 8.1, 'Nicolas': 8.1, 'Marie': 8.1, 'David': 8.1, 'Julie': 8.1, 'Alexandre': 8.1, 'Camille': 8.1, 'Antoine': 8.1}
+
+Pour la colonne 'date_vente_jour':
+- Type de colonne: num
+- Nombre de valeurs manquantes: 0
+- Nombre de valeurs non manquantes: 86
+- Minimum: 1.0
+- Maximum: 31.0
+- Moyenne: 15.604651162790697
+- Médiane: 15.5
+- Mode: 5
+- Écart-type: 8.762593048618914
+- Variance: 76.78303693570452
+- Skewness: 0.0035196878930860856
+- Kurtosis: -1.1900699861044644
+- Étendue: 30.0
+- Total: 1342.0
+- Quartiles: {'Q1': 8.0, 'Q2': 15.5, 'Q3': 23.0}
+- Distribution par bins: {'(0.969, 4.0]': 11, '(7.0, 10.0]': 9, '(13.0, 16.0]': 9, '(10.0, 13.0]': 9, '(16.0, 19.0]': 9, '(4.0, 7.0]': 8, '(19.0, 22.0]': 8, '(22.0, 25.0]': 8, '(25.0, 28.0]': 8, '(28.0, 31.0]': 7}
+
+Pour la colonne 'date_vente_mois':
+- Type de colonne: cat
+- Nombre de valeurs manquantes: 0
+- Nombre de valeurs non manquantes: 86
+- Nombre de catégories uniques: 4
+- Mode: Avril
+- Fréquences des catégories: {'Janvier': 25.6, 'Avril': 25.6, 'Février': 24.4, 'Mars': 24.4}
+
+Pour la colonne 'date_vente_annee':
+- Type de colonne: num
+- Nombre de valeurs manquantes: 0
+- Nombre de valeurs non manquantes: 86
+- Minimum: 2024.0
+- Maximum: 2024.0
+- Moyenne: 2024.0
+- Médiane: 2024.0
+- Mode: 2024
+- Écart-type: 0.0
+- Variance: 0.0
+- Skewness: nan
+- Kurtosis: nan
+- Étendue: 0.0
+- Total: 174064.0
+- Quartiles: {'Q1': 2024.0, 'Q2': 2024.0, 'Q3': 2024.0}
+- Distribution par bins: {'(2023.595, 2024.0]': 86, '(2021.9750000000001, 2022.381]': 0, '(2022.381, 2022.786]': 0, '(2022.786, 2023.19]': 0, '(2023.19, 2023.595]': 0, '(2024.0, 2024.405]': 0, '(2024.405, 2024.81]': 0, '(2024.81, 2025.214]': 0, '(2025.214, 2025.619]': 0, '(2025.619, 2026.024]': 0}
+

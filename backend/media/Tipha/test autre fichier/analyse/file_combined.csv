@@ -1,0 +1,87 @@
+produit,categorie,quantite,prix_unitaire,montant_total,client,region,vendeur,date_vente_jour,date_vente_mois,date_vente_annee
+Ordinateur portable,High-Tech,1,899.0,899.0,Entreprise A,Île-de-France,Martin,2,Janvier,2024
+Smartphone,High-Tech,2,599.0,1198.0,Particulier B,Auvergne-Rhône-Alpes,Sophie,3,Janvier,2024
+Chaise bureau,Mobilier,4,149.0,596.0,Entreprise C,PACA,Thomas,4,Janvier,2024
+Casque audio,High-Tech,3,89.0,267.0,Particulier D,Occitanie,Laura,5,Janvier,2024
+Imprimante,Bureautique,1,299.0,299.0,Entreprise E,Nouvelle-Aquitaine,Pierre,8,Janvier,2024
+Tablette,High-Tech,2,349.0,698.0,Particulier F,Bretagne,Nicolas,9,Janvier,2024
+Bureau,Mobilier,1,450.0,450.0,Entreprise G,Hauts-de-France,Marie,10,Janvier,2024
+"Écran 24""",High-Tech,3,199.0,597.0,Entreprise H,Normandie,David,11,Janvier,2024
+Clavier,High-Tech,5,45.0,225.0,Particulier I,Centre-Val de Loire,Julie,12,Janvier,2024
+Souris,High-Tech,6,25.0,150.0,Entreprise J,Bourgogne-Franche-Comté,Alexandre,15,Janvier,2024
+Enceinte Bluetooth,High-Tech,2,79.0,158.0,Particulier K,Pays de la Loire,Camille,16,Janvier,2024
+Lampe de bureau,Mobilier,3,65.0,195.0,Entreprise L,Grand Est,Antoine,17,Janvier,2024
+Disque dur externe,High-Tech,4,89.0,356.0,Particulier M,Île-de-France,Martin,18,Janvier,2024
+Logiciel bureautique,Logiciel,2,149.0,298.0,Entreprise N,Auvergne-Rhône-Alpes,Sophie,19,Janvier,2024
+Caméra web,High-Tech,3,59.0,177.0,Particulier O,PACA,Thomas,22,Janvier,2024
+Fauteuil directeur,Mobilier,1,750.0,750.0,Entreprise P,Occitanie,Laura,23,Janvier,2024
+Serveur,High-Tech,1,2500.0,2500.0,Entreprise Q,Nouvelle-Aquitaine,Pierre,24,Janvier,2024
+Tableau blanc,Bureautique,2,120.0,240.0,Particulier R,Bretagne,Nicolas,25,Janvier,2024
+Routeur WiFi,High-Tech,3,85.0,255.0,Entreprise S,Hauts-de-France,Marie,26,Janvier,2024
+Scanner,Bureautique,1,189.0,189.0,Particulier T,Normandie,David,29,Janvier,2024
+Armoire classeur,Mobilier,2,320.0,640.0,Entreprise U,Centre-Val de Loire,Julie,30,Janvier,2024
+Smartwatch,High-Tech,4,199.0,796.0,Particulier V,Bourgogne-Franche-Comté,Alexandre,31,Janvier,2024
+Microphone,High-Tech,2,129.0,258.0,Entreprise W,Pays de la Loire,Camille,1,Février,2024
+Étagère,Mobilier,3,95.0,285.0,Particulier X,Grand Est,Antoine,2,Février,2024
+Station d'accueil,High-Tech,2,89.0,178.0,Entreprise Y,Île-de-France,Martin,5,Février,2024
+Tapis de souris,Accessoire,10,12.0,120.0,Particulier Z,Auvergne-Rhône-Alpes,Sophie,6,Février,2024
+Vidéoprojecteur,High-Tech,1,650.0,650.0,Entreprise AA,PACA,Thomas,7,Février,2024
+Clé USB 64Go,High-Tech,8,18.0,144.0,Particulier BB,Occitanie,Laura,8,Février,2024
+Table basse,Mobilier,1,280.0,280.0,Entreprise CC,Nouvelle-Aquitaine,Pierre,9,Février,2024
+Casque VR,High-Tech,2,399.0,798.0,Particulier DD,Bretagne,Nicolas,12,Février,2024
+Imprimante laser,Bureautique,1,450.0,450.0,Entreprise EE,Hauts-de-France,Marie,13,Février,2024
+Câbles HDMI,Accessoire,15,8.0,120.0,Particulier FF,Normandie,David,14,Février,2024
+Table réunion,Mobilier,1,1200.0,1200.0,Entreprise GG,Centre-Val de Loire,Julie,15,Février,2024
+Drone,High-Tech,1,899.0,899.0,Particulier HH,Bourgogne-Franche-Comté,Alexandre,16,Février,2024
+Enceinte connectée,High-Tech,3,69.0,207.0,Entreprise II,Pays de la Loire,Camille,19,Février,2024
+Livreur de documents,Bureautique,2,45.0,90.0,Particulier JJ,Grand Est,Antoine,20,Février,2024
+"Moniteur 27""",High-Tech,2,299.0,598.0,Entreprise KK,Île-de-France,Martin,21,Février,2024
+Chaise conférence,Mobilier,6,180.0,1080.0,Particulier LL,Auvergne-Rhône-Alpes,Sophie,22,Février,2024
+Switch réseau,High-Tech,1,350.0,350.0,Entreprise MM,PACA,Thomas,23,Février,2024
+Laptop stand,Accessoire,4,35.0,140.0,Particulier NN,Occitanie,Laura,26,Février,2024
+Serveur NAS,High-Tech,1,1200.0,1200.0,Entreprise OO,Nouvelle-Aquitaine,Pierre,27,Février,2024
+Lampadaire,Mobilier,2,85.0,170.0,Particulier PP,Bretagne,Nicolas,28,Février,2024
+Webcam 4K,High-Tech,3,129.0,387.0,Entreprise QQ,Hauts-de-France,Marie,29,Février,2024
+Clavier mécanique,High-Tech,2,89.0,178.0,Particulier RR,Normandie,David,1,Mars,2024
+Armoire archivage,Mobilier,1,550.0,550.0,Entreprise SS,Centre-Val de Loire,Julie,4,Mars,2024
+Tablette graphique,High-Tech,1,299.0,299.0,Particulier TT,Bourgogne-Franche-Comté,Alexandre,5,Mars,2024
+UPS,High-Tech,2,220.0,440.0,Entreprise UU,Pays de la Loire,Camille,6,Mars,2024
+Poubelle bureau,Accessoire,5,25.0,125.0,Particulier VV,Grand Est,Antoine,7,Mars,2024
+PC Gamer,High-Tech,1,1899.0,1899.0,Entreprise WW,Île-de-France,Martin,8,Mars,2024
+"Écran 32""",High-Tech,2,450.0,900.0,Particulier XX,Auvergne-Rhône-Alpes,Sophie,11,Mars,2024
+Canapé bureau,Mobilier,1,850.0,850.0,Entreprise YY,PACA,Thomas,12,Mars,2024
+Hub USB-C,Accessoire,6,45.0,270.0,Particulier ZZ,Occitanie,Laura,13,Mars,2024
+Serveur rack,High-Tech,1,3200.0,3200.0,Entreprise AAA,Nouvelle-Aquitaine,Pierre,14,Mars,2024
+Paravent,Mobilier,3,120.0,360.0,Particulier BBB,Bretagne,Nicolas,15,Mars,2024
+Caméra surveillance,High-Tech,4,89.0,356.0,Entreprise CCC,Hauts-de-France,Marie,18,Mars,2024
+Support écran,Accessoire,3,65.0,195.0,Particulier DDD,Normandie,David,19,Mars,2024
+Table modulable,Mobilier,1,680.0,680.0,Entreprise EEE,Centre-Val de Loire,Julie,20,Mars,2024
+Drone pro,High-Tech,1,2500.0,2500.0,Particulier FFF,Bourgogne-Franche-Comté,Alexandre,21,Mars,2024
+Enceinte réunion,High-Tech,2,350.0,700.0,Entreprise GGG,Pays de la Loire,Camille,22,Mars,2024
+Pèse-lettres,Bureautique,1,75.0,75.0,Particulier HHH,Grand Est,Antoine,25,Mars,2024
+Workstation,High-Tech,1,3200.0,3200.0,Entreprise III,Île-de-France,Martin,26,Mars,2024
+Bibliothèque,Mobilier,2,420.0,840.0,Particulier JJJ,Auvergne-Rhône-Alpes,Sophie,27,Mars,2024
+Switch PoE,High-Tech,1,280.0,280.0,Entreprise KKK,PACA,Thomas,28,Mars,2024
+Chargeur multiple,Accessoire,8,22.0,176.0,Particulier LLL,Occitanie,Laura,29,Mars,2024
+Serveur cloud,High-Tech,1,4500.0,4500.0,Entreprise MMM,Nouvelle-Aquitaine,Pierre,1,Avril,2024
+Pouf,Mobilier,4,95.0,380.0,Particulier NNN,Bretagne,Nicolas,2,Avril,2024
+Caméra 360°,High-Tech,2,199.0,398.0,Entreprise OOO,Hauts-de-France,Marie,3,Avril,2024
+Support laptop,Accessoire,5,28.0,140.0,Particulier PPP,Normandie,David,4,Avril,2024
+Table conférence,Mobilier,1,1500.0,1500.0,Entreprise QQQ,Centre-Val de Loire,Julie,5,Avril,2024
+Drone FPV,High-Tech,1,1200.0,1200.0,Particulier RRR,Bourgogne-Franche-Comté,Alexandre,8,Avril,2024
+Barre de son,High-Tech,2,299.0,598.0,Entreprise SSS,Pays de la Loire,Camille,9,Avril,2024
+Trieur courrier,Bureautique,3,35.0,105.0,Particulier TTT,Grand Est,Antoine,10,Avril,2024
+PC All-in-One,High-Tech,1,1299.0,1299.0,Entreprise UUU,Île-de-France,Martin,11,Avril,2024
+Écran incurvé,High-Tech,1,799.0,799.0,Particulier VVV,Auvergne-Rhône-Alpes,Sophie,12,Avril,2024
+Canapé d'accueil,Mobilier,1,1200.0,1200.0,Entreprise WWW,PACA,Thomas,15,Avril,2024
+Dock station,Accessoire,4,89.0,356.0,Particulier XXX,Occitanie,Laura,16,Avril,2024
+Serveur backup,High-Tech,1,1800.0,1800.0,Entreprise YYY,Nouvelle-Aquitaine,Pierre,17,Avril,2024
+Paravent acoustique,Mobilier,2,450.0,900.0,Particulier ZZZ,Bretagne,Nicolas,18,Avril,2024
+Kit conférence,High-Tech,1,850.0,850.0,Entreprise AAAA,Hauts-de-France,Marie,19,Avril,2024
+Organisateur câbles,Accessoire,10,8.0,80.0,Particulier BBBB,Normandie,David,22,Avril,2024
+Table réglable,Mobilier,1,950.0,950.0,Entreprise CCCC,Centre-Val de Loire,Julie,23,Avril,2024
+Drone mini,High-Tech,3,199.0,597.0,Particulier DDDD,Bourgogne-Franche-Comté,Alexandre,24,Avril,2024
+Soundbar,High-Tech,2,189.0,378.0,Entreprise EEEE,Pays de la Loire,Camille,25,Avril,2024
+Perforatrice,Bureautique,1,45.0,45.0,Particulier FFFF,Grand Est,Antoine,26,Avril,2024
+Ultrabook,High-Tech,1,1499.0,1499.0,Entreprise GGGG,Île-de-France,Martin,29,Avril,2024
+Écran portable,High-Tech,2,350.0,700.0,Particulier HHHH,Auvergne-Rhône-Alpes,Sophie,30,Avril,2024

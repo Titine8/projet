@@ -1,0 +1,15 @@
+Résumé global du dataset :
+- Nombre de lignes : 86
+- Nombre de colonnes : 11
+- Types de colonnes :
+  * produit: object, valeurs uniques : 86
+  * categorie: object, valeurs uniques : 5
+  * quantite: int64, valeurs uniques : 9
+  * prix_unitaire: float64, valeurs uniques : 49
+  * montant_total: float64, valeurs uniques : 66
+  * client: object, valeurs uniques : 86
+  * region: object, valeurs uniques : 12
+  * vendeur: object, valeurs uniques : 12
+  * date_vente_jour: int64, valeurs uniques : 31
+  * date_vente_mois: object, valeurs uniques : 4
+  * date_vente_annee: int64, valeurs uniques : 1

@@ -1,5 +1,0 @@
-Résumé du dataset :
-- Nombre de lignes : 3547
-- Nombre de colonnes : 15
-- Types de colonnes : {'hour_of_day': dtype('int64'), 'cash_type': dtype('O'), 'money': dtype('float64'), 'coffee_name': dtype('O'), 'Time_of_Day': dtype('O'), 'Weekday': dtype('O'), 'Month_name': dtype('O'), 'Weekdaysort': dtype('int64'), 'Monthsort': dtype('int64'), 'Date_jour': dtype('int64'), 'Date_mois': dtype('O'), 'Date_annee': dtype('int64'), 'Time_heure': dtype('int64'), 'Time_minute': dtype('int64'), 'Time_seconde': dtype('int64')}
-- Valeurs manquantes totales : 0
