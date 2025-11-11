@@ -8,17 +8,19 @@ function Header() {
   const navigate = useNavigate();
   const username = localStorage.getItem("username");
 
+
   const styles = {
     header: {
       position: "fixed",
       top: 0,
-      right: 0,
-      padding: "12px 24px",
+      left: 0,
+      width: "100%",
+      height: "60px",
       display: "flex",
+      justifyContent: "flex-start",
       alignItems: "center",
-      gap: "16px",
+      padding: "0 20px", // <-- passe de 24px à 40px
       background: "linear-gradient(to right, #00074d, #00bcd4)",
-      borderBottomLeftRadius: "12px",
       color: "white",
       fontWeight: "700",
       fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
@@ -30,15 +32,19 @@ function Header() {
     button: {
       backgroundColor: "#fff",
       border: "none",
-      borderRadius: "4px",
+      borderRadius: "10px",
       color: "#00074d",
-      padding: "8px 16px",
+      padding: "8px 20px", // <-- plus de padding horizontal
       cursor: "pointer",
       fontWeight: "600",
-      fontSize: "0.9rem",
+      fontSize: "0.95rem",
       transition: "all 0.2s ease",
+      minWidth: "120px",
+      boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
+      marginRight: "0",     // <-- ça recentre
     },
   };
+
 
   const handleLogout = () => {
     localStorage.removeItem("accessToken");
@@ -50,7 +56,7 @@ function Header() {
     <div style={styles.header}>
       <div>👤 {username}</div>
       <button
-        style={styles.button}
+        style={{ ...styles.button, marginLeft: "auto", marginRight: "25px" }}
         onClick={handleLogout}
         onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#cfe3f2")}
         onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#fff")}
@@ -59,6 +65,7 @@ function Header() {
       </button>
     </div>
   );
+
 }
 
 // ---------------- ImportPage ----------------
@@ -90,7 +97,9 @@ export default function ImportPage() {
   const [cible, setCible] = useState("");
   const [columns, setColumns] = useState([]);
   const [singleFileModalOpen, setSingleFileModalOpen] = useState(false); // Nouvel état pour le modal single file
-
+  const [previewData, setPreviewData] = useState([]);
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewLoading, setPreviewLoading] = useState(false);
   // Quand les relations sont validées
   const handleRelationsValidated = (columnsList) => {
     setColumns(columnsList);
@@ -116,12 +125,16 @@ export default function ImportPage() {
 
   const styles = {
     page: {
-      width: "100vw",
+      width: "100%",
+      maxWidth: "100%",
+      overflowX: "hidden",
+
       minHeight: "100vh",
       backgroundColor: "#e6f2f8",
       color: "#333",
       fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-      padding: "60px 40px 40px 40px",
+      padding: "80px 40px 40px 40px",
+
       boxSizing: "border-box",
       display: "flex",
       justifyContent: "center",
@@ -310,7 +323,24 @@ export default function ImportPage() {
       setLoadingFiles(false);
     }
   };
-
+  const fetchDataPreview = async (folderName) => {
+    const token = localStorage.getItem("accessToken");
+    setPreviewLoading(true);
+    try {
+      const res = await axios.get(
+        `http://localhost:8000/api/import/folder/${encodeURIComponent(folderName)}/data_preview/`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      console.log("Données reçues:", res.data); // ← AJOUTEZ CETTE LIGNE
+      setPreviewData(res.data.preview || []);
+      setShowPreview(true);
+    } catch (err) {
+      console.error("Erreur récupération preview:", err);
+      setPreviewData([]);
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
   const fetchFolderFiles = async (folderName) => {
     const token = localStorage.getItem("accessToken");
     if (!token) return;
@@ -436,110 +466,111 @@ export default function ImportPage() {
 
   // ---------------- MODAL ANALYSE ----------------
   const openModal = async (folderName) => {
-  setFolderToAnalyze(folderName);
-  const token = localStorage.getItem("accessToken");
-  if (!token) return;
+    setFolderToAnalyze(folderName);
+    const token = localStorage.getItem("accessToken");
+    if (!token) return;
 
-  try {
-    const res = await axios.get(
-      `http://localhost:8000/api/import/folder/${encodeURIComponent(folderName)}/files/`,
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-
-    const files = res.data.files || [];
-
-    // Si un seul fichier
-    if (files.length === 1) {
-      setSingleFileModalOpen(true);
-      const uniqueFile = files[0];
-      const resCols = await axios.get(
-        `http://localhost:8000/api/import/folder/${encodeURIComponent(folderName)}/${encodeURIComponent(uniqueFile)}/columns/`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setColumns(resCols.data.columns || []);
-      setCible("");
-      setShowCible(true);
-      return;
-    }
-
-    // Plusieurs fichiers → modal normal
-    setModalOpen(true);
-    setModalLoading(true);
-    setAvailableFiles(files);
-
-    // 🔹 Étape 1 : vérifier relations existantes
-    let checkRes = await axios.get(
-      `http://localhost:8000/api/import/folder/${encodeURIComponent(folderName)}/check_relations_file/`,
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-
-    if (!checkRes.data.exists) {
-      // 🔹 Étape 2 : créer les relations si pas existantes
-      await axios.post(
-        `http://localhost:8000/api/import/folder/${encodeURIComponent(folderName)}/relations/`,
-        {},
+    try {
+      const res = await axios.get(
+        `http://localhost:8000/api/import/folder/${encodeURIComponent(folderName)}/files/`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      // 🔹 Étape 3 : rappeler check_relations pour récupérer les relations créées
-      checkRes = await axios.get(
+      const files = res.data.files || [];
+      // Récupérer l'aperçu des données
+      await fetchDataPreview(folderName);
+      // Si un seul fichier
+      if (files.length === 1) {
+        setSingleFileModalOpen(true);
+        const uniqueFile = files[0];
+        const resCols = await axios.get(
+          `http://localhost:8000/api/import/folder/${encodeURIComponent(folderName)}/${encodeURIComponent(uniqueFile)}/columns/`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setColumns(resCols.data.columns || []);
+        setCible("");
+        setShowCible(true);
+        return;
+      }
+
+      // Plusieurs fichiers → modal normal
+      setModalOpen(true);
+      setModalLoading(true);
+      setAvailableFiles(files);
+
+      // 🔹 Étape 1 : vérifier relations existantes
+      let checkRes = await axios.get(
         `http://localhost:8000/api/import/folder/${encodeURIComponent(folderName)}/check_relations_file/`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-    }
 
-    // 🔹 Étape 4 : utiliser les relations
-    setRelations(
-      checkRes.data.relations.map(r => ({ ...r, id: uuidv4() }))
-    );
-    setRelationsLocked(false);
-
-    // 🔹 Récupérer la cible si déjà définie
-    try {
-      const cibleRes = await axios.get(
-        `http://localhost:8000/api/import/folder/${encodeURIComponent(folderName)}/get_cible/`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      if (cibleRes.data.cible) {
-        setCible(cibleRes.data.cible);
-        setColumns([cibleRes.data.cible]);
-        setShowCible(true);
-      }
-    } catch (err) {
-      console.error("Erreur récupération cible:", err);
-    }
-
-    // 🔹 Charger les colonnes pour tous les fichiers
-    const columnsData = await Promise.all(
-      files.map(async (file) => {
-        const res = await axios.get(
-          `http://localhost:8000/api/import/folder/${encodeURIComponent(folderName)}/${encodeURIComponent(file)}/columns/`,
+      if (!checkRes.data.exists) {
+        // 🔹 Étape 2 : créer les relations si pas existantes
+        await axios.post(
+          `http://localhost:8000/api/import/folder/${encodeURIComponent(folderName)}/relations/`,
+          {},
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        return { file, columns: res.data.columns || [] };
-      })
-    );
 
-    const newFileColumns = {};
-    columnsData.forEach(cd => { newFileColumns[cd.file] = cd.columns });
-    setFileColumns(newFileColumns);
+        // 🔹 Étape 3 : rappeler check_relations pour récupérer les relations créées
+        checkRes = await axios.get(
+          `http://localhost:8000/api/import/folder/${encodeURIComponent(folderName)}/check_relations_file/`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      }
 
-  } catch (err) {
-    console.error(err);
-    setAvailableFiles([]);
-    setRelations([{ id: uuidv4(), fichier1: "", colonne1: "", fichier2: "", colonne2: "" }]);
-  } finally {
-    setModalLoading(false);
-  }
-};
+      // 🔹 Étape 4 : utiliser les relations
+      setRelations(
+        checkRes.data.relations.map(r => ({ ...r, id: uuidv4() }))
+      );
+      setRelationsLocked(false);
+
+      // 🔹 Récupérer la cible si déjà définie
+      try {
+        const cibleRes = await axios.get(
+          `http://localhost:8000/api/import/folder/${encodeURIComponent(folderName)}/get_cible/`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        if (cibleRes.data.cible) {
+          setCible(cibleRes.data.cible);
+          setColumns([cibleRes.data.cible]);
+          setShowCible(true);
+        }
+      } catch (err) {
+        console.error("Erreur récupération cible:", err);
+      }
+
+      // 🔹 Charger les colonnes pour tous les fichiers
+      const columnsData = await Promise.all(
+        files.map(async (file) => {
+          const res = await axios.get(
+            `http://localhost:8000/api/import/folder/${encodeURIComponent(folderName)}/${encodeURIComponent(file)}/columns/`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          return { file, columns: res.data.columns || [] };
+        })
+      );
+
+      const newFileColumns = {};
+      columnsData.forEach(cd => { newFileColumns[cd.file] = cd.columns });
+      setFileColumns(newFileColumns);
+
+    } catch (err) {
+      console.error(err);
+      setAvailableFiles([]);
+      setRelations([{ id: uuidv4(), fichier1: "", colonne1: "", fichier2: "", colonne2: "" }]);
+    } finally {
+      setModalLoading(false);
+    }
+  };
 
 
 
   const confirmAnalysis = () => {
     if (!cible) {
-    alert("Veuillez choisir une colonne cible avant d'analyser.");
-    return;
-  }
+      alert("Veuillez choisir une colonne cible avant d'analyser.");
+      return;
+    }
     setModalOpen(false);
     const username = localStorage.getItem("username");
     navigate(`/analyse/${encodeURIComponent(username)}/${encodeURIComponent(folderToAnalyze)}`);
@@ -678,7 +709,7 @@ export default function ImportPage() {
             type="file"
             multiple
             onChange={handleFileChange}
-            accept=".csv, .xlsx"
+            accept=".csv,.xlsx,.json,.xml"
             style={{
               ...styles.input,
               marginTop: "16px",
@@ -990,6 +1021,49 @@ export default function ImportPage() {
               </span>
             )}
 
+            {/* ========== APERÇU DES DONNÉES ========== */}
+            {showPreview && (
+              <div style={{ marginTop: "20px", maxHeight: "300px", overflow: "auto" }}>
+                <h4 style={{ color: "#00074d", marginBottom: "10px" }}>Aperçu des données (10 premières lignes)</h4>
+                {previewLoading ? (
+                  <p style={{ fontStyle: "italic", color: "#00074d" }}>Chargement de l'aperçu...</p>
+                ) : previewData.length > 0 ? (
+                  <div style={{
+                    border: "1px solid #cfe3f2",
+                    borderRadius: "6px",
+                    padding: "10px",
+                    backgroundColor: "#f8f9fa"
+                  }}>
+                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
+                      <thead>
+                        <tr style={{ backgroundColor: "#00074d", color: "white" }}>
+                          {Object.keys(previewData[0] || {}).map(key => (
+                            <th key={key} style={{ padding: "8px", border: "1px solid #ddd", textAlign: "left" }}>
+                              {key}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {previewData.map((row, index) => (
+                          <tr key={index} style={{ backgroundColor: index % 2 === 0 ? "white" : "#f5f5f5" }}>
+                            {Object.values(row).map((value, cellIndex) => (
+                              <td key={cellIndex} style={{ padding: "6px", border: "1px solid #ddd" }}>
+                                {String(value)}
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <p style={{ color: "#666" }}>Aucune donnée à afficher</p>
+                )}
+              </div>
+            )}
+            {/* ========== FIN APERÇU ========== */}
+
             <div style={styles.modalButtons}>
               <button
                 style={{ ...styles.modalButton, ...styles.modalButtonOk }}
@@ -1029,69 +1103,69 @@ export default function ImportPage() {
                 ✖
               </button>
             </div>
-            
+
             <p>Vous avez sélectionné un dossier avec un seul fichier pour l'analyse.</p>
 
             {/* Affiche "Chargement..." tant que les colonnes ne sont pas encore disponibles */}
-{columns.length === 0 && (
-  <p style={{ fontStyle: "italic", color: "#00074d", marginTop: "12px" }}>
-    Préparation des colonnes...
-  </p>
-)}
+            {columns.length === 0 && (
+              <p style={{ fontStyle: "italic", color: "#00074d", marginTop: "12px" }}>
+                Préparation des colonnes...
+              </p>
+            )}
 
-{/* Affiche le select seulement quand les colonnes sont chargées */}
-{columns.length > 0 && (
-  <div style={{ marginTop: "20px" }}>
-    <label>Choisir la colonne cible:</label>
-    <select
-      value={cible}
-      onChange={(e) => setCible(e.target.value)}
-      style={{
-        marginLeft: "12px",
-        padding: "10px 14px",
-        borderRadius: "6px",
-        border: "2px solid #00074d",
-        backgroundColor: "#f5f5f5",
-        color: "#333",
-        fontWeight: "600",
-      }}
-    >
-      <option value="" disabled>-- Choisir --</option>
-      {columns.map(col => <option key={col} value={col}>{col}</option>)}
-    </select>
+            {/* Affiche le select seulement quand les colonnes sont chargées */}
+            {columns.length > 0 && (
+              <div style={{ marginTop: "20px" }}>
+                <label>Choisir la colonne cible:</label>
+                <select
+                  value={cible}
+                  onChange={(e) => setCible(e.target.value)}
+                  style={{
+                    marginLeft: "12px",
+                    padding: "10px 14px",
+                    borderRadius: "6px",
+                    border: "2px solid #00074d",
+                    backgroundColor: "#f5f5f5",
+                    color: "#333",
+                    fontWeight: "600",
+                  }}
+                >
+                  <option value="" disabled>-- Choisir --</option>
+                  {columns.map(col => <option key={col} value={col}>{col}</option>)}
+                </select>
 
-    <button
-      onClick={async () => {
-        const token = localStorage.getItem("accessToken");
-        try {
-          await axios.post(
-            `http://localhost:8000/api/import/folder/${encodeURIComponent(folderToAnalyze)}/save_cible/`,
-            { cible },
-            { headers: { Authorization: `Bearer ${token}` } }
-          );
-          setCibleMessage("✅ Cible validée !");
-          setCibleValidated(true);
-        } catch (err) {
-          console.error(err);
-          setCibleMessage("❌ Erreur lors de la validation !");
-        }
-      }}
-      disabled={cibleValidated}
-      style={{
-        marginLeft: "12px",
-        padding: "8px 16px",
-        borderRadius: "6px",
-        border: "2px solid #00074d",
-        backgroundColor: "white",
-        color: "#00074d",
-        fontWeight: "600",
-        cursor: cibleValidated ? "not-allowed" : "pointer",
-      }}
-    >
-      Valider la cible
-    </button>
-  </div>
-)}
+                <button
+                  onClick={async () => {
+                    const token = localStorage.getItem("accessToken");
+                    try {
+                      await axios.post(
+                        `http://localhost:8000/api/import/folder/${encodeURIComponent(folderToAnalyze)}/save_cible/`,
+                        { cible },
+                        { headers: { Authorization: `Bearer ${token}` } }
+                      );
+                      setCibleMessage("✅ Cible validée !");
+                      setCibleValidated(true);
+                    } catch (err) {
+                      console.error(err);
+                      setCibleMessage("❌ Erreur lors de la validation !");
+                    }
+                  }}
+                  disabled={cibleValidated}
+                  style={{
+                    marginLeft: "12px",
+                    padding: "8px 16px",
+                    borderRadius: "6px",
+                    border: "2px solid #00074d",
+                    backgroundColor: "white",
+                    color: "#00074d",
+                    fontWeight: "600",
+                    cursor: cibleValidated ? "not-allowed" : "pointer",
+                  }}
+                >
+                  Valider la cible
+                </button>
+              </div>
+            )}
 
 
             {cibleMessage && (
@@ -1100,35 +1174,80 @@ export default function ImportPage() {
               </span>
             )}
 
+            {/* ========== APERÇU DES DONNÉES ========== */}
+            {showPreview && (
+              <div style={{ marginTop: "20px", maxHeight: "300px", overflow: "auto" }}>
+                <h4 style={{ color: "#00074d", marginBottom: "10px" }}></h4>
+                {previewLoading ? (
+                  <p style={{ fontStyle: "italic", color: "#00074d" }}>Chargement de l'aperçu...</p>
+                ) : previewData.length > 0 ? (
+                  <div style={{
+                    border: "1px solid #cfe3f2",
+                    borderRadius: "6px",
+                    padding: "10px",
+                    backgroundColor: "#f8f9fa"
+                  }}>
+                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
+                      <thead>
+                        <tr style={{ backgroundColor: "#00074d", color: "white" }}>
+                          {Object.keys(previewData[0] || {}).map(key => (
+                            <th key={key} style={{ padding: "8px", border: "1px solid #ddd", textAlign: "left" }}>
+                              {key}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {previewData.map((row, index) => (
+                          <tr key={index} style={{ backgroundColor: index % 2 === 0 ? "white" : "#f5f5f5" }}>
+                            {Object.values(row).map((value, cellIndex) => (
+                              <td key={cellIndex} style={{ padding: "6px", border: "1px solid #ddd" }}>
+                                {String(value)}
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <p style={{ color: "#666" }}>Aucune donnée à afficher</p>
+                )}
+              </div>
+            )}
+            {/* ========== FIN APERÇU ========== */}
+
+
+
             <div style={styles.modalButtons}>
               <button
-  style={{ ...styles.modalButton, ...styles.modalButtonOk }}
-  onClick={async () => {
-    if (!cible) {
-      alert("Veuillez choisir et valider une colonne cible avant d'analyser.");
-      return;
-    }
+                style={{ ...styles.modalButton, ...styles.modalButtonOk }}
+                onClick={async () => {
+                  if (!cible) {
+                    alert("Veuillez choisir et valider une colonne cible avant d'analyser.");
+                    return;
+                  }
 
-    const token = localStorage.getItem("accessToken");
-    try {
-      // ⚡ Appel à l'endpoint prepare_single_combined
-      await axios.post(
-        `http://localhost:8000/api/import/folder/${encodeURIComponent(folderToAnalyze)}/prepare_single_combined/`,
-        {}, // pas de body nécessaire
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+                  const token = localStorage.getItem("accessToken");
+                  try {
+                    // ⚡ Appel à l'endpoint prepare_single_combined
+                    await axios.post(
+                      `http://localhost:8000/api/import/folder/${encodeURIComponent(folderToAnalyze)}/prepare_single_combined/`,
+                      {}, // pas de body nécessaire
+                      { headers: { Authorization: `Bearer ${token}` } }
+                    );
 
-      setSingleFileModalOpen(false);
-      const username = localStorage.getItem("username");
-      navigate(`/analyse/${encodeURIComponent(username)}/${encodeURIComponent(folderToAnalyze)}`);
-    } catch (err) {
-      console.error(err);
-      alert("Erreur lors de la préparation du fichier combiné !");
-    }
-  }}
->
-  Analyser
-</button>
+                    setSingleFileModalOpen(false);
+                    const username = localStorage.getItem("username");
+                    navigate(`/analyse/${encodeURIComponent(username)}/${encodeURIComponent(folderToAnalyze)}`);
+                  } catch (err) {
+                    console.error(err);
+                    alert("Erreur lors de la préparation du fichier combiné !");
+                  }
+                }}
+              >
+                Analyser
+              </button>
 
               <button
                 style={{ ...styles.modalButton, ...styles.modalButtonCancel }}
@@ -1169,5 +1288,5 @@ export default function ImportPage() {
       )}
     </>
   );
-  
+
 }

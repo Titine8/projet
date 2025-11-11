@@ -179,16 +179,8 @@ import os
 from django.conf import settings
 from sentence_transformers import SentenceTransformer
 import faiss
-import os
 import pickle
-import faiss
 import numpy as np
-from sentence_transformers import SentenceTransformer
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from django.conf import settings
-from ollama import Client
-
 
 API_KEY = "45be6155dee04ec1bc5a8b82900600e2.eGGiJpghbTTumj-LV7Y-sVtM"
 
@@ -246,7 +238,7 @@ def chatbot(request):
             "status": "error"
         })
 
-    # 🔹 Lire tous les fichiers .txt
+    # Lire tous les fichiers .txt
     doc_texts = []
     filenames = []
     for txt_file in os.listdir(analyse_folder):
@@ -267,10 +259,10 @@ def chatbot(request):
             "status": "error"
         })
 
-    # 🔹 Charger l'index FAISS existant si disponible
+    # Charger l'index FAISS existant si disponible
     index, saved_filenames = load_index(analyse_folder)
 
-    # 🔹 Reconstruire l'index si nouveaux fichiers ajoutés ou pas d'index
+    # Reconstruire l'index si nouveaux fichiers ajoutés ou pas d'index
     if index is None or set(filenames) != set(saved_filenames):
         print("⚡ Reconstruction de l'index FAISS...")
         index, embeddings = build_faiss_index(doc_texts)
@@ -278,7 +270,7 @@ def chatbot(request):
     else:
         print("🔹 Index FAISS existant utilisé.")
 
-    # 🔹 Rechercher les documents les plus pertinents
+    # Rechercher les documents les plus pertinents
     query_embedding = embed_model.encode([user_message], convert_to_numpy=True)
     k = min(3, len(filenames))
     distances, indices = index.search(query_embedding, k)
@@ -287,28 +279,31 @@ def chatbot(request):
     for i, idx in enumerate(indices[0]):
         print(f" - {filenames[idx]} | distance = {distances[0][i]}")
 
-    # 🔹 Score de similarité minimal (ex: distance < 0.5)
+    # Construire le contexte et les scores de pertinence
     threshold = 20
     context = ""
+    doc_scores = {}
     for i, idx in enumerate(indices[0]):
         if distances[0][i] > threshold:
             print(f"❌ Ignoré {filenames[idx]} (distance > {threshold})")
             continue
         print(f"✅ Utilisé {filenames[idx]} dans le contexte")
         context += f"--- Contenu de {filenames[idx]} ---\n{doc_texts[idx]}\n\n"
+        # Score : plus la distance est faible, plus le score est élevé
+        doc_scores[filenames[idx]] = 1 / (1 + distances[0][i])
 
     if not context:
         context = "Aucune information pertinente trouvée dans les documents."
         print("⚠️ Aucun document pertinent trouvé pour cette requête.")
 
-    # 🔹 Construire le message pour Ollama
+    # Construire le message pour Ollama
     messages = [
         {'role': 'system', 'content': (
             "Tu réponds toujours de façon courte et précise. "
             "Utilise le texte fourni comme source pour les questions sur le dataset, "
             "mais tu peux aussi répondre à des questions générales normales. "
             "Si il n'y a pas d'information dans le dataset, réponds de la manière dont tu penses. "
-            "La réponse doit faire une phrase."
+            "La réponse doit faire une phrase. "
             "Quand tu repondras, ne parle pas de manière technique, la personne qui te parle n'a pas de compétence technique"
         )},
         {'role': 'user', 'content': f"{context}\nQuestion : {user_message}"}
@@ -322,7 +317,8 @@ def chatbot(request):
         print(f"✅ Réponse générée : {response_text.strip()}")
         return Response({
             "reply": response_text.strip(),
-            "status": "success"
+            "status": "success",
+            "doc_scores": {f: round(s * 100, 1) for f, s in doc_scores.items()}  # score en %
         })
 
     except Exception as e:

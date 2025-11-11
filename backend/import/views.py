@@ -107,8 +107,26 @@ class FileUploadView(APIView):
                         df = pd.DataFrame([data])
                         
                 elif ext == '.xml':
-                    # Utiliser le parser etree au lieu de lxml
-                    df = pd.read_xml(file, parser='etree')
+                    # Lire le contenu XML
+                    file_content = file.read().decode('utf-8')
+                    print(f"Contenu XML (premiers 500 caractères): {file_content[:500]}")
+                    
+                    # Parser manuellement le XML
+                    import xml.etree.ElementTree as ET
+                    root = ET.fromstring(file_content)
+                    
+                    # Extraire toutes les données dans une liste de dictionnaires
+                    data_list = []
+                    for element in root:
+                        row_data = {}
+                        for child in element:
+                            row_data[child.tag] = child.text
+                        data_list.append(row_data)
+                    
+                    print(f"Nombre d'éléments parsés: {len(data_list)}")
+                    print(f"Exemple de données: {data_list[0] if data_list else 'Aucune'}")
+                    
+                    df = pd.DataFrame(data_list)
                         
                 print(f"DataFrame shape: {df.shape}")
                 print(f"Colonnes: {df.columns.tolist()}")
@@ -131,7 +149,6 @@ class FileUploadView(APIView):
 
         print("=== UPLOAD RÉUSSI ===")
         return Response({"message": "Fichiers convertis en CSV avec succès."}, status=status.HTTP_200_OK)
-
 
 # ---------------- Supprimer un dossier ----------------
 class FolderDeleteView(APIView):
@@ -627,3 +644,29 @@ def prepare_single_combined(request, folder_name):
         "message": "Fichier renommé et sauvegardé sous file_combined.csv",
         "combined_file": "file_combined.csv"
     }, status=200)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def data_preview(request, folder_name):
+    user_folder = os.path.join(settings.MEDIA_ROOT, request.user.username, folder_name)
+    analyse_folder = os.path.join(user_folder, "analyse")
+    
+    # Chercher le fichier combiné ou le premier fichier
+    combined_file = os.path.join(analyse_folder, "file_combined.csv")
+    
+    if os.path.exists(combined_file):
+        file_path = combined_file
+    else:
+        # Prendre le premier fichier CSV du dossier
+        files = [f for f in os.listdir(user_folder) if f.endswith('.csv')]
+        if not files:
+            return Response({"preview": []}, status=200)
+        file_path = os.path.join(user_folder, files[0])
+    
+    try:
+        df = pd.read_csv(file_path)
+        # Prendre seulement les 10 premières lignes pour l'aperçu
+        preview = df.head(50).fillna('').to_dict('records')
+        return Response({"preview": preview}, status=200)
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)

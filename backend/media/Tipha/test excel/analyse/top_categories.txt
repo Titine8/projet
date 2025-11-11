@@ -1,0 +1,24 @@
+Colonne 'Nom':
+- Alice: 10.0%
+- Bob: 10.0%
+- Chloé: 10.0%
+- David: 10.0%
+- Emma: 10.0%
+- Félix: 10.0%
+- Hugo: 10.0%
+- Inès: 10.0%
+- Jules: 10.0%
+- Léa: 10.0%
+
+Colonne 'Ville':
+- Paris: 10.0%
+- Lyon: 10.0%
+- Marseille: 10.0%
+- Lille: 10.0%
+- Toulouse: 10.0%
+- Nice: 10.0%
+- Bordeaux: 10.0%
+- Nantes: 10.0%
+- Strasbourg: 10.0%
+- Rennes: 10.0%
+

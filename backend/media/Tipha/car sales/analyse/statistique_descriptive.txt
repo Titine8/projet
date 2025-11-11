@@ -1,0 +1,96 @@
+Pour la colonne 'Manufacturer':
+- Type de colonne: cat
+- Nombre de valeurs manquantes: 0
+- Nombre de valeurs non manquantes: 5000
+- Nombre de catégories uniques: 5
+- Mode: VW
+- Fréquences des catégories: {'VW': 29.799999999999997, 'Ford': 29.4, 'Toyota': 24.9, 'BMW': 10.4, 'Porsche': 5.5}
+
+Pour la colonne 'Model':
+- Type de colonne: cat
+- Nombre de valeurs manquantes: 0
+- Nombre de valeurs non manquantes: 5000
+- Nombre de catégories uniques: 15
+- Mode: Polo
+- Fréquences des catégories: {'Polo': 10.6, 'Mondeo': 10.0, 'Golf': 10.0, 'Focus': 9.9, 'Fiesta': 9.5, 'Passat': 9.3, 'RAV4': 8.9, 'Yaris': 8.5}
+
+Pour la colonne 'Engine size':
+- Type de colonne: num
+- Nombre de valeurs manquantes: 0
+- Nombre de valeurs non manquantes: 5000
+- Minimum: 1.0
+- Maximum: 5.0
+- Moyenne: 1.78608
+- Médiane: 1.6
+- Mode: 1.4
+- Écart-type: 0.7389177447366501
+- Variance: 0.5459994334866972
+- Skewness: 2.0894463625430975
+- Kurtosis: 5.375098080073668
+- Étendue: 4.0
+- Total: 8930.4
+- Quartiles: {'Q1': 1.4, 'Q2': 1.6, 'Q3': 2.0}
+- Distribution par bins: {'(0.995, 1.4]': 2079, '(1.4, 1.8]': 1253, '(1.8, 2.2]': 974, '(2.2, 2.6]': 299, '(2.6, 3.0]': 134, '(3.8, 4.2]': 106, '(4.2, 4.6]': 59, '(4.6, 5.0]': 58, '(3.4, 3.8]': 38, '(3.0, 3.4]': 0}
+
+Pour la colonne 'Fuel type':
+- Type de colonne: cat
+- Nombre de valeurs manquantes: 0
+- Nombre de valeurs non manquantes: 5000
+- Nombre de catégories uniques: 3
+- Mode: Petrol
+- Fréquences des catégories: {'Petrol': 52.7, 'Diesel': 25.3, 'Hybrid': 22.0}
+
+Pour la colonne 'Year of manufacture':
+- Type de colonne: num
+- Nombre de valeurs manquantes: 0
+- Nombre de valeurs non manquantes: 5000
+- Minimum: 1984.0
+- Maximum: 2022.0
+- Moyenne: 2004.1938
+- Médiane: 2004.0
+- Mode: 2000
+- Écart-type: 9.581910256354531
+- Variance: 91.81300416083216
+- Skewness: -0.0670433434051923
+- Kurtosis: -1.0460151320730278
+- Étendue: 38.0
+- Total: 10020969.0
+- Quartiles: {'Q1': 1996.0, 'Q2': 2004.0, 'Q3': 2012.0}
+- Distribution par bins: {'(1999.2, 2003.0]': 650, '(2006.8, 2010.6]': 625, '(2014.4, 2018.2]': 621, '(2010.6, 2014.4]': 612, '(1991.6, 1995.4]': 603, '(1995.4, 1999.2]': 583, '(2003.0, 2006.8]': 479, '(1987.8, 1991.6]': 370, '(2018.2, 2022.0]': 293, '(1983.961, 1987.8]': 164}
+
+Pour la colonne 'Mileage':
+- Type de colonne: num
+- Nombre de valeurs manquantes: 0
+- Nombre de valeurs non manquantes: 5000
+- Minimum: 1487.0
+- Maximum: 398984.0
+- Moyenne: 112587.8896
+- Médiane: 101015.0
+- Mode: 5000
+- Écart-type: 71659.90806571978
+- Variance: 5135142423.98741
+- Skewness: 0.715992761619582
+- Kurtosis: 0.035539540007591075
+- Étendue: 397497.0
+- Total: 562939448.0
+- Quartiles: {'Q1': 54117.25, 'Q2': 101015.0, 'Q3': 157373.75}
+- Distribution par bins: {'(41236.7, 80986.4]': 1100, '(80986.4, 120736.1]': 950, '(1089.502, 41236.7]': 886, '(120736.1, 160485.8]': 861, '(160485.8, 200235.5]': 561, '(200235.5, 239985.2]': 352, '(239985.2, 279734.9]': 175, '(279734.9, 319484.6]': 86, '(319484.6, 359234.3]': 23, '(359234.3, 398984.0]': 6}
+
+Pour la colonne 'Price':
+- Type de colonne: num
+- Nombre de valeurs manquantes: 0
+- Nombre de valeurs non manquantes: 5000
+- Minimum: 159.0
+- Maximum: 143033.0
+- Moyenne: 13775.2862
+- Médiane: 7945.0
+- Mode: 1019
+- Écart-type: 16237.825913550414
+- Variance: 263666990.39876932
+- Skewness: 2.7098307636380627
+- Kurtosis: 11.06614073312298
+- Étendue: 142874.0
+- Total: 68876431.0
+- Quartiles: {'Q1': 3090.5, 'Q2': 7945.0, 'Q3': 18893.0}
+- Distribution par bins: {'(16.125, 14446.4]': 3354, '(14446.4, 28733.8]': 1000, '(28733.8, 43021.2]': 370, '(43021.2, 57308.6]': 152, '(57308.6, 71596.0]': 61, '(71596.0, 85883.4]': 25, '(85883.4, 100170.8]': 14, '(100170.8, 114458.2]': 10, '(114458.2, 128745.6]': 7, '(128745.6, 143033.0]': 7}
+

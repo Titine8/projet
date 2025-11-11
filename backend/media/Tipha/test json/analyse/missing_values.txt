@@ -1,0 +1,10 @@
+Total valeurs manquantes dans le dataset : 0
+
+- Colonne 'nom_vendeur': 0 valeurs manquantes (0.0%)
+- Colonne 'nom_produit': 0 valeurs manquantes (0.0%)
+- Colonne 'categorie_produit': 0 valeurs manquantes (0.0%)
+- Colonne 'quantite': 0 valeurs manquantes (0.0%)
+- Colonne 'montant_total': 0 valeurs manquantes (0.0%)
+- Colonne 'date_vente_jour': 0 valeurs manquantes (0.0%)
+- Colonne 'date_vente_mois': 0 valeurs manquantes (0.0%)
+- Colonne 'date_vente_annee': 0 valeurs manquantes (0.0%)

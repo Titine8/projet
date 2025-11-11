@@ -1,0 +1,52 @@
+{
+    "target": "Age",
+    "influences": [
+        {
+            "column": "Nom",
+            "influence": 65.44
+        },
+        {
+            "column": "ID",
+            "influence": 37.51
+        },
+        {
+            "column": "Ville",
+            "influence": 14.74
+        }
+    ],
+    "encoding_mapping": {
+        "Nom": [
+            "Alice",
+            "Bob",
+            "Charlie",
+            "Diana",
+            "Fatima",
+            "Georges",
+            "Hélène",
+            "Ivan",
+            "Julie",
+            "Éric"
+        ],
+        "Ville": [
+            "Bordeaux",
+            "Lille",
+            "Lyon",
+            "Marseille",
+            "Montpellier",
+            "Nantes",
+            "Nice",
+            "Paris",
+            "Strasbourg",
+            "Toulouse"
+        ]
+    },
+    "total_columns_analyzed": 3,
+    "data_shape": {
+        "rows": 10,
+        "columns": 4
+    },
+    "categorical_columns_encoded": [
+        "Nom",
+        "Ville"
+    ]
+}

@@ -1,0 +1,5 @@
+Résumé du dataset :
+- Nombre de lignes : 10
+- Nombre de colonnes : 4
+- Types de colonnes : {'ID': dtype('int64'), 'Nom': dtype('O'), 'Age': dtype('int64'), 'Ville': dtype('O')}
+- Valeurs manquantes totales : 0

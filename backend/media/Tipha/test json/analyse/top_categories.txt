@@ -1,0 +1,134 @@
+Colonne 'nom_vendeur':
+- Pierre Martin: 10.299999999999999%
+- Marie Dubois: 10.299999999999999%
+- Jean Petit: 10.299999999999999%
+- Sophie Laurent: 10.299999999999999%
+- Lucas Moreau: 10.299999999999999%
+- Camille Bernard: 10.299999999999999%
+- Antoine Roux: 10.299999999999999%
+- Élodie Michel: 9.3%
+- Thomas Leroy: 9.3%
+- Nicolas Blanc: 9.3%
+
+Colonne 'nom_produit':
+- Ordinateur Portable: 0.8999999999999999%
+- Smartphone High-Tech: 0.8999999999999999%
+- Cafetière Électrique: 0.8999999999999999%
+- Canapé 3 Places: 0.8999999999999999%
+- Table à Manger: 0.8999999999999999%
+- Robot Mixeur: 0.8999999999999999%
+- Jeans Slim: 0.8999999999999999%
+- Livre Cuisine: 0.8999999999999999%
+- Écran 24 pouces: 0.8999999999999999%
+- Chaise Bureau: 0.8999999999999999%
+- Aspirateur: 0.8999999999999999%
+- T-shirt Coton: 0.8999999999999999%
+- Roman Policier: 0.8999999999999999%
+- Tablette Graphique: 0.8999999999999999%
+- Micro-ondes: 0.8999999999999999%
+- Armoire 2 Portes: 0.8999999999999999%
+- Chemise Homme: 0.8999999999999999%
+- Guide Voyage: 0.8999999999999999%
+- Casque Audio: 0.8999999999999999%
+- Réfrigérateur: 0.8999999999999999%
+- Bureau Moderne: 0.8999999999999999%
+- Robe Soirée: 0.8999999999999999%
+- Encyclopédie: 0.8999999999999999%
+- Appareil Photo: 0.8999999999999999%
+- Lave-vaisselle: 0.8999999999999999%
+- Fauteuil Relax: 0.8999999999999999%
+- Veste Cuir: 0.8999999999999999%
+- Livre Enfant: 0.8999999999999999%
+- Smartwatch: 0.8999999999999999%
+- Congélateur: 0.8999999999999999%
+- Étagère Murale: 0.8999999999999999%
+- Chaussures Sport: 0.8999999999999999%
+- Dictionnaire: 0.8999999999999999%
+- Enceinte Bluetooth: 0.8999999999999999%
+- Cafetière Delonghi: 0.8999999999999999%
+- Canapé Angle: 0.8999999999999999%
+- Pull Laine: 0.8999999999999999%
+- Bande Dessinée: 0.8999999999999999%
+- PC Gamer: 0.8999999999999999%
+- Four Électrique: 0.8999999999999999%
+- Table Basse: 0.8999999999999999%
+- Short Jean: 0.8999999999999999%
+- Livre Histoire: 0.8999999999999999%
+- Clavier Mécanique: 0.8999999999999999%
+- Batteur Électrique: 0.8999999999999999%
+- Lit Double: 0.8999999999999999%
+- Cravate Soie: 0.8999999999999999%
+- Roman Fantasy: 0.8999999999999999%
+- Souris Gaming: 0.8999999999999999%
+- Grille-pain: 0.8999999999999999%
+- Commode 3 Tiroirs: 0.8999999999999999%
+- Ensemble Pyjama: 0.8999999999999999%
+- Biographie: 0.8999999999999999%
+- Tablette Samsung: 0.8999999999999999%
+- Hotte Aspirante: 0.8999999999999999%
+- Bibliothèque: 0.8999999999999999%
+- Manteau Hiver: 0.8999999999999999%
+- Livre Art: 0.8999999999999999%
+- Écouteurs Sans Fil: 0.8999999999999999%
+- Machine à Laver: 0.8999999999999999%
+- Banquette: 0.8999999999999999%
+- Collier Argent: 0.8999999999999999%
+- Essai Philosophie: 0.8999999999999999%
+- Moniteur 27": 0.8999999999999999%
+- Sèche-cheveux: 0.8999999999999999%
+- Table Console: 0.8999999999999999%
+- Chaussettes Coton: 0.8999999999999999%
+- Poésie: 0.8999999999999999%
+- Webcam HD: 0.8999999999999999%
+- Fer à Repasser: 0.8999999999999999%
+- Pouf Décoration: 0.8999999999999999%
+- Sac à Main: 0.8999999999999999%
+- Science-Fiction: 0.8999999999999999%
+- Imprimante: 0.8999999999999999%
+- Bouilloire: 0.8999999999999999%
+- Chaise de Jardin: 0.8999999999999999%
+- Ceinture Cuir: 0.8999999999999999%
+- Théâtre Classique: 0.8999999999999999%
+- Disque Dur Externe: 0.8999999999999999%
+- Raclette Électrique: 0.8999999999999999%
+- Meuble TV: 0.8999999999999999%
+- Écharpe Laine: 0.8999999999999999%
+- Guide Pratique: 0.8999999999999999%
+- Calculatrice: 0.8999999999999999%
+- Blender: 0.8999999999999999%
+- Tabouret Bar: 0.8999999999999999%
+- Gants Cuir: 0.8999999999999999%
+- Album Photo: 0.8999999999999999%
+- Power Bank: 0.8999999999999999%
+- Cuisinière Gaz: 0.8999999999999999%
+- Paravent: 0.8999999999999999%
+- Bijoux Fantaisie: 0.8999999999999999%
+- Manga: 0.8999999999999999%
+- Drone: 0.8999999999999999%
+- Balance Cuisine: 0.8999999999999999%
+- Table de Chevet: 0.8999999999999999%
+- Chapeau Panama: 0.8999999999999999%
+- Carnet Voyage: 0.8999999999999999%
+- Adaptateur USB-C: 0.8999999999999999%
+- Aspirateur Robot: 0.8999999999999999%
+- Porte Manteau: 0.8999999999999999%
+- Lunettes Soleil: 0.8999999999999999%
+- Recueil Nouvelles: 0.8999999999999999%
+- Microphone USB: 0.8999999999999999%
+- Yaourtière: 0.8999999999999999%
+- Banquette Hall: 0.8999999999999999%
+- Éventail: 0.8999999999999999%
+
+Colonne 'categorie_produit':
+- Électronique: 20.599999999999998%
+- Électroménager: 20.599999999999998%
+- Meubles: 20.599999999999998%
+- Vêtements: 19.6%
+- Livres: 18.7%
+
+Colonne 'date_vente_mois':
+- Mars: 28.999999999999996%
+- Avril: 28.000000000000004%
+- Février: 27.1%
+- Janvier: 15.9%
+

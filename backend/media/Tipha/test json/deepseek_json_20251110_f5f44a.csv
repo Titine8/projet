@@ -1,0 +1,108 @@
+nom_vendeur,nom_produit,categorie_produit,quantite,montant_total,date_vente_jour,date_vente_mois,date_vente_annee
+Pierre Martin,Ordinateur Portable,Électronique,1,899.99,15,Janvier,2024
+Marie Dubois,Smartphone High-Tech,Électronique,2,1299.98,16,Janvier,2024
+Jean Petit,Cafetière Électrique,Électroménager,1,49.99,17,Janvier,2024
+Sophie Laurent,Canapé 3 Places,Meubles,1,599.0,18,Janvier,2024
+Lucas Moreau,Table à Manger,Meubles,1,450.0,19,Janvier,2024
+Camille Bernard,Robot Mixeur,Électroménager,1,79.99,20,Janvier,2024
+Antoine Roux,Jeans Slim,Vêtements,3,179.97,21,Janvier,2024
+Élodie Michel,Livre Cuisine,Livres,2,39.98,22,Janvier,2024
+Thomas Leroy,Écran 24 pouces,Électronique,1,199.99,23,Janvier,2024
+Nicolas Blanc,Chaise Bureau,Meubles,4,399.96,24,Janvier,2024
+Pierre Martin,Aspirateur,Électroménager,1,149.99,25,Janvier,2024
+Marie Dubois,T-shirt Coton,Vêtements,5,124.95,26,Janvier,2024
+Jean Petit,Roman Policier,Livres,1,15.99,27,Janvier,2024
+Sophie Laurent,Tablette Graphique,Électronique,1,299.99,28,Janvier,2024
+Lucas Moreau,Micro-ondes,Électroménager,1,89.99,29,Janvier,2024
+Camille Bernard,Armoire 2 Portes,Meubles,1,350.0,30,Janvier,2024
+Antoine Roux,Chemise Homme,Vêtements,2,119.98,31,Janvier,2024
+Élodie Michel,Guide Voyage,Livres,1,22.5,1,Février,2024
+Thomas Leroy,Casque Audio,Électronique,3,299.97,2,Février,2024
+Nicolas Blanc,Réfrigérateur,Électroménager,1,499.99,3,Février,2024
+Pierre Martin,Bureau Moderne,Meubles,1,275.0,4,Février,2024
+Marie Dubois,Robe Soirée,Vêtements,1,89.99,5,Février,2024
+Jean Petit,Encyclopédie,Livres,1,45.0,6,Février,2024
+Sophie Laurent,Appareil Photo,Électronique,1,599.99,7,Février,2024
+Lucas Moreau,Lave-vaisselle,Électroménager,1,399.99,8,Février,2024
+Camille Bernard,Fauteuil Relax,Meubles,2,459.98,9,Février,2024
+Antoine Roux,Veste Cuir,Vêtements,1,199.99,10,Février,2024
+Élodie Michel,Livre Enfant,Livres,4,71.96,11,Février,2024
+Thomas Leroy,Smartwatch,Électronique,2,399.98,12,Février,2024
+Nicolas Blanc,Congélateur,Électroménager,1,329.99,13,Février,2024
+Pierre Martin,Étagère Murale,Meubles,3,149.97,14,Février,2024
+Marie Dubois,Chaussures Sport,Vêtements,2,159.98,15,Février,2024
+Jean Petit,Dictionnaire,Livres,1,29.99,16,Février,2024
+Sophie Laurent,Enceinte Bluetooth,Électronique,4,319.96,17,Février,2024
+Lucas Moreau,Cafetière Delonghi,Électroménager,1,129.99,18,Février,2024
+Camille Bernard,Canapé Angle,Meubles,1,899.0,19,Février,2024
+Antoine Roux,Pull Laine,Vêtements,3,134.97,20,Février,2024
+Élodie Michel,Bande Dessinée,Livres,5,74.95,21,Février,2024
+Thomas Leroy,PC Gamer,Électronique,1,1199.99,22,Février,2024
+Nicolas Blanc,Four Électrique,Électroménager,1,279.99,23,Février,2024
+Pierre Martin,Table Basse,Meubles,2,199.98,24,Février,2024
+Marie Dubois,Short Jean,Vêtements,4,119.96,25,Février,2024
+Jean Petit,Livre Histoire,Livres,2,51.98,26,Février,2024
+Sophie Laurent,Clavier Mécanique,Électronique,1,89.99,27,Février,2024
+Lucas Moreau,Batteur Électrique,Électroménager,1,45.99,28,Février,2024
+Camille Bernard,Lit Double,Meubles,1,450.0,29,Février,2024
+Antoine Roux,Cravate Soie,Vêtements,6,179.94,1,Mars,2024
+Élodie Michel,Roman Fantasy,Livres,3,53.97,2,Mars,2024
+Thomas Leroy,Souris Gaming,Électronique,2,119.98,3,Mars,2024
+Nicolas Blanc,Grille-pain,Électroménager,1,35.99,4,Mars,2024
+Pierre Martin,Commode 3 Tiroirs,Meubles,1,220.0,5,Mars,2024
+Marie Dubois,Ensemble Pyjama,Vêtements,2,69.98,6,Mars,2024
+Jean Petit,Biographie,Livres,1,24.99,7,Mars,2024
+Sophie Laurent,Tablette Samsung,Électronique,1,349.99,8,Mars,2024
+Lucas Moreau,Hotte Aspirante,Électroménager,1,189.99,9,Mars,2024
+Camille Bernard,Bibliothèque,Meubles,1,180.0,10,Mars,2024
+Antoine Roux,Manteau Hiver,Vêtements,1,149.99,11,Mars,2024
+Élodie Michel,Livre Art,Livres,1,39.99,12,Mars,2024
+Thomas Leroy,Écouteurs Sans Fil,Électronique,5,249.95,13,Mars,2024
+Nicolas Blanc,Machine à Laver,Électroménager,1,429.99,14,Mars,2024
+Pierre Martin,Banquette,Meubles,2,320.0,15,Mars,2024
+Marie Dubois,Collier Argent,Vêtements,1,59.99,16,Mars,2024
+Jean Petit,Essai Philosophie,Livres,1,19.99,17,Mars,2024
+Sophie Laurent,"Moniteur 27""",Électronique,1,279.99,18,Mars,2024
+Lucas Moreau,Sèche-cheveux,Électroménager,1,42.99,19,Mars,2024
+Camille Bernard,Table Console,Meubles,1,125.0,20,Mars,2024
+Antoine Roux,Chaussettes Coton,Vêtements,10,49.9,21,Mars,2024
+Élodie Michel,Poésie,Livres,2,31.98,22,Mars,2024
+Thomas Leroy,Webcam HD,Électronique,3,89.97,23,Mars,2024
+Nicolas Blanc,Fer à Repasser,Électroménager,1,55.99,24,Mars,2024
+Pierre Martin,Pouf Décoration,Meubles,4,159.96,25,Mars,2024
+Marie Dubois,Sac à Main,Vêtements,1,79.99,26,Mars,2024
+Jean Petit,Science-Fiction,Livres,3,44.97,27,Mars,2024
+Sophie Laurent,Imprimante,Électronique,1,199.99,28,Mars,2024
+Lucas Moreau,Bouilloire,Électroménager,2,59.98,29,Mars,2024
+Camille Bernard,Chaise de Jardin,Meubles,6,239.94,30,Mars,2024
+Antoine Roux,Ceinture Cuir,Vêtements,2,89.98,31,Mars,2024
+Élodie Michel,Théâtre Classique,Livres,1,16.99,1,Avril,2024
+Thomas Leroy,Disque Dur Externe,Électronique,1,89.99,2,Avril,2024
+Nicolas Blanc,Raclette Électrique,Électroménager,1,69.99,3,Avril,2024
+Pierre Martin,Meuble TV,Meubles,1,299.0,4,Avril,2024
+Marie Dubois,Écharpe Laine,Vêtements,4,79.96,5,Avril,2024
+Jean Petit,Guide Pratique,Livres,2,41.98,6,Avril,2024
+Sophie Laurent,Calculatrice,Électronique,1,25.99,7,Avril,2024
+Lucas Moreau,Blender,Électroménager,1,75.99,8,Avril,2024
+Camille Bernard,Tabouret Bar,Meubles,3,134.97,9,Avril,2024
+Antoine Roux,Gants Cuir,Vêtements,2,45.98,10,Avril,2024
+Élodie Michel,Album Photo,Livres,1,34.99,11,Avril,2024
+Thomas Leroy,Power Bank,Électronique,4,119.96,12,Avril,2024
+Nicolas Blanc,Cuisinière Gaz,Électroménager,1,549.99,13,Avril,2024
+Pierre Martin,Paravent,Meubles,1,89.0,14,Avril,2024
+Marie Dubois,Bijoux Fantaisie,Vêtements,8,159.92,15,Avril,2024
+Jean Petit,Manga,Livres,7,104.93,16,Avril,2024
+Sophie Laurent,Drone,Électronique,1,299.99,17,Avril,2024
+Lucas Moreau,Balance Cuisine,Électroménager,1,29.99,18,Avril,2024
+Camille Bernard,Table de Chevet,Meubles,2,89.98,19,Avril,2024
+Antoine Roux,Chapeau Panama,Vêtements,1,34.99,20,Avril,2024
+Élodie Michel,Carnet Voyage,Livres,1,18.5,21,Avril,2024
+Thomas Leroy,Adaptateur USB-C,Électronique,10,49.9,22,Avril,2024
+Nicolas Blanc,Aspirateur Robot,Électroménager,1,249.99,23,Avril,2024
+Pierre Martin,Porte Manteau,Meubles,1,45.0,24,Avril,2024
+Marie Dubois,Lunettes Soleil,Vêtements,3,89.97,25,Avril,2024
+Jean Petit,Recueil Nouvelles,Livres,2,27.98,26,Avril,2024
+Sophie Laurent,Microphone USB,Électronique,1,79.99,27,Avril,2024
+Lucas Moreau,Yaourtière,Électroménager,1,39.99,28,Avril,2024
+Camille Bernard,Banquette Hall,Meubles,1,175.0,29,Avril,2024
+Antoine Roux,Éventail,Vêtements,5,74.95,30,Avril,2024

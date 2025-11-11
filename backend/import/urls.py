@@ -1,10 +1,11 @@
 from django.urls import path
 from .views import (
     FileUploadView, FolderDeleteView, FileDeleteView,
-    FolderFilesView, FileColumnsView, save_relations, get_relations, check_relations_file,save_cible,get_cible, prepare_single_combined,create_relation
+    FolderFilesView, FileColumnsView, save_relations, get_relations, check_relations_file,save_cible,get_cible, prepare_single_combined,create_relation,data_preview
 )
 urlpatterns = [
     path("upload/", FileUploadView.as_view(), name="file-upload"),
+    path('folder/<str:folder_name>/data_preview/', data_preview, name='data_preview'),
     path("folder/<str:folder_name>/relations/", create_relation, name="create-relation"),
     path("folder/<str:folder_name>/prepare_single_combined/", prepare_single_combined, name="prepare-single-combined"),
     path("folder/<str:folder_name>/save_relations/", save_relations, name="save-relations"),

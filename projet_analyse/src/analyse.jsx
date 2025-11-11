@@ -15,8 +15,6 @@ export default function Analyse() {
   const [stats, setStats] = useState({});
   const [loading, setLoading] = useState(false);
   const [modalData, setModalData] = useState(null);
-  const [chatMessage, setChatMessage] = useState("");
-  const [chatMessages, setChatMessages] = useState([]);
 
 
   const token = localStorage.getItem("accessToken");
@@ -62,16 +60,67 @@ export default function Analyse() {
   };
 
   const getStats = async (fileName) => {
-    try {
-      const res = await axios.get(
-        `http://localhost:8000/api/statistique/${encodeURIComponent(decodedUsername)}/${encodeURIComponent(decodedFolder)}/stats-json/`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setStats(prev => ({ ...prev, [fileName]: res.data }));
-    } catch (err) {
-      console.error("Erreur récupération stats:", err);
+  try {
+    const res = await axios.get(
+      `http://localhost:8000/api/statistique/${encodeURIComponent(decodedUsername)}/${encodeURIComponent(decodedFolder)}/stats-json/`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    
+    console.log("=== DEBUG STATS ===");
+    console.log("Type de res.data:", typeof res.data);
+    console.log("res.data:", res.data);
+    console.log("=== FIN DEBUG ===");
+    
+    let statsData = [];
+    let rawData = res.data;
+
+    // Si c'est une string, essayez de la parser en gérant les NaN
+    if (typeof rawData === 'string') {
+      try {
+        // Remplacer NaN par null avant le parsing
+        const cleanedJsonString = rawData.replace(/NaN/g, 'null');
+        rawData = JSON.parse(cleanedJsonString);
+      } catch (e) {
+        console.error("Échec parsing JSON:", e);
+        // Si le parsing échoue, essayez une méthode plus agressive
+        try {
+          // Essayez d'extraire le JSON de la string
+          const jsonMatch = rawData.match(/\[.*\]/s);
+          if (jsonMatch) {
+            const cleaned = jsonMatch[0].replace(/NaN/g, 'null');
+            rawData = JSON.parse(cleaned);
+          }
+        } catch (e2) {
+          console.error("Échec méthode alternative:", e2);
+        }
+      }
     }
-  };
+
+    // Extraire le tableau des stats
+    if (Array.isArray(rawData)) {
+      statsData = rawData;
+    } else if (rawData && typeof rawData === 'object') {
+      // Chercher n'importe quelle propriété qui est un array
+      for (let key in rawData) {
+        if (Array.isArray(rawData[key])) {
+          statsData = rawData[key];
+          break;
+        }
+      }
+    }
+
+    // Filtrer pour garder seulement les objets avec nom_colonne
+    statsData = statsData.filter(item => 
+      item && typeof item === 'object' && item.nom_colonne
+    );
+
+    console.log("statsData final:", statsData);
+    setStats(prev => ({ ...prev, [fileName]: statsData }));
+    
+  } catch (err) {
+    console.error("Erreur récupération stats:", err);
+  }
+};
 
   const formatNumber = (value) => {
     return value != null && !isNaN(value) ? Number(value).toFixed(2) : value ?? "-";
@@ -97,59 +146,7 @@ export default function Analyse() {
     return "-";
   };
 
-  const handleSendMessage = async () => {
-    if (chatMessage.trim() === "") return;
-
-    console.log("Envoi du message :", chatMessage);
-
-    const newMessage = {
-      id: Date.now(),
-      text: chatMessage,
-      sender: "user",
-      timestamp: new Date().toLocaleTimeString()
-    };
-
-    console.log("Ajout message utilisateur au state :", newMessage);
-    setChatMessages(prev => [...prev, newMessage]);
-    setChatMessage("");
-
-    try {
-      console.log("Appel axios POST vers /api/chatbot/ avec payload :", { message: chatMessage });
-      const res = await axios.post(
-        "http://localhost:8000/api/analyse/chatbot/",
-        {
-          message: chatMessage,
-          username: decodedUsername,
-          folder: decodedFolder
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
-
-      console.log("Réponse du serveur :", res.data);
-
-      const botResponse = {
-        id: Date.now() + 1,
-        text: res.data.reply,
-        sender: "bot",
-        timestamp: new Date().toLocaleTimeString()
-      };
-
-      console.log("Ajout réponse du bot au state :", botResponse);
-      setChatMessages(prev => [...prev, botResponse]);
-    } catch (err) {
-      console.error("Erreur lors de l'appel axios :", err);
-      const botResponse = {
-        id: Date.now() + 1,
-        text: "Erreur du serveur, veuillez réessayer.",
-        sender: "bot",
-        timestamp: new Date().toLocaleTimeString()
-      };
-      console.log("Ajout message d'erreur du bot au state :", botResponse);
-      setChatMessages(prev => [...prev, botResponse]);
-    }
-  };
+  
 
   const menuButtons = [
     { id: "statistique", label: "Statistique descriptive", action: () => navigate(`/analyse/${username}/${folder}`) },
@@ -201,7 +198,7 @@ export default function Analyse() {
         <main style={styles.content}>
           {loading ? (
             <p style={styles.loading}>Chargement des statistiques...</p>
-          ) : file && stats[file] ? (
+          ) : file && stats[file] && Array.isArray(stats[file]) ? (
             <div style={styles.cardsContainer}>
               {stats[file].map((col, index) => {
                 const keyValue = getKeyValue(col);
@@ -597,63 +594,7 @@ export default function Analyse() {
 
         </main>
 
-        {/* Chatbot Panel - Affiché en permanence */}
-        <aside style={styles.chatbotPanel}>
-          <div style={styles.chatbotHeader}>
-            <h3 style={styles.chatbotTitle}>🤖 Assistant IA</h3>
-          </div>
-
-          <div style={styles.chatbotContent}>
-            <div style={styles.chatMessages}>
-              {chatMessages.length === 0 ? (
-                <div style={styles.welcomeMessage}>
-                  <p>Bonjour ! Je suis votre assistant pour l'analyse de données.</p>
-                  <p>Posez-moi vos questions sur les statistiques !</p>
-                </div>
-              ) : (
-                chatMessages.map(msg => (
-                  <div
-                    key={msg.id}
-                    style={{
-                      ...styles.message,
-                      ...(msg.sender === "user" ? styles.userMessage : styles.botMessage)
-                    }}
-                  >
-                    <div style={{
-                      ...styles.messageText,
-                      ...(msg.sender === "user" ? styles.userMessageText : styles.botMessageText)
-                    }}>
-                      {msg.text}
-                    </div>
-                    <div style={styles.messageTime}>{msg.timestamp}</div>
-                  </div>
-                ))
-              )}
-            </div>
-
-            <div style={styles.chatInputContainer}>
-              <textarea
-                value={chatMessage}
-                onChange={(e) => setChatMessage(e.target.value)}
-                onKeyPress={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSendMessage();
-                  }
-                }}
-                placeholder="Tapez votre message..."
-                style={styles.chatInput}
-                rows={1}
-              />
-              <button
-                onClick={handleSendMessage}
-                style={styles.sendButton}
-              >
-                ➤
-              </button>
-            </div>
-          </div>
-        </aside>
+        
       </div>
     </div>
   );
@@ -719,6 +660,7 @@ const styles = {
     transition: "all 0.3s ease"
   },
   mainContainer: {
+    width: "100%",
     display: "flex",
     gap: "20px",
     marginTop: "20px",
@@ -729,133 +671,8 @@ const styles = {
     flex: 1,
     minHeight: "400px"
   },
-  chatbotPanel: {
-    width: "320px",
-    background: "white",
-    borderRadius: "12px",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-    overflow: "hidden",
-    position: "sticky",
-    top: "20px",
-    alignSelf: "flex-start"
-  },
-  chatbotHeader: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: "12px 15px",
-    backgroundColor: "#00074d",
-    color: "white"
-  },
-  chatbotTitle: {
-    margin: 0,
-    fontSize: "15px",
-    fontWeight: "600"
-  },
-  chatbotContent: {
-    display: "flex",
-    flexDirection: "column",
-    height: "350px"
-  },
-  chatMessages: {
-    flex: 1,
-    padding: "12px",
-    overflowY: "auto",
-    backgroundColor: "#f8f9fa",
-    display: "flex",
-    flexDirection: "column",
-    gap: "8px" // Espacement entre les messages
-  },
+ 
 
-  message: {
-    display: "flex",
-    flexDirection: "column",
-    marginBottom: "8px",
-    maxWidth: "85%", // Limite la largeur max
-    wordWrap: "break-word"
-  },
-
-  userMessage: {
-    alignSelf: "flex-end",
-    alignItems: "flex-end"
-  },
-
-  botMessage: {
-    alignSelf: "flex-start",
-    alignItems: "flex-start"
-  },
-
-  messageText: {
-    padding: "10px 14px",
-    borderRadius: "18px",
-    fontSize: "14px",
-    lineHeight: "1.4",
-    wordWrap: "break-word",
-    wordBreak: "break-word",
-    whiteSpace: "pre-wrap", // Respecte les sauts de ligne
-    maxWidth: "100%",
-    boxSizing: "border-box"
-  },
-
-  userMessageText: {
-    backgroundColor: "#00074d",
-    color: "white",
-    borderBottomRightRadius: "4px" // Petit détail style Messenger
-  },
-
-  botMessageText: {
-    backgroundColor: "#e9ecef",
-    color: "#333",
-    borderBottomLeftRadius: "4px"
-  },
-welcomeMessage: {
-    textAlign: "center",
-    color: "#666",
-    fontSize: "12px", // ← Juste changer cette ligne (était 13px avant)
-    lineHeight: "1.4",
-    padding: "15px 0"
-  },
-  messageTime: {
-    fontSize: "11px",
-    color: "#999",
-    marginTop: "4px",
-    padding: "0 4px"
-  },
-  chatInputContainer: {
-    display: "flex",
-    padding: "12px",
-    borderTop: "1px solid #e0e0e0",
-    backgroundColor: "white",
-    alignItems: "flex-end" // Ajoutez cette ligne
-  },
-  chatInput: {
-    flex: 1,
-    padding: "10px 12px",
-    border: "1px solid #ddd",
-    borderRadius: "20px",
-    outline: "none",
-    fontSize: "13px",
-    fontFamily: "inherit", // Important pour la cohérence
-    resize: "none", // Empêche le redimensionnement manuel
-    minHeight: "40px", // Hauteur minimale
-    maxHeight: "120px", // Hauteur maximale (3-4 lignes)
-    overflowY: "auto", // Scroll si besoin
-    lineHeight: "1.4"
-  },
-  sendButton: {
-    marginLeft: "8px",
-    width: "35px",
-    height: "35px",
-    borderRadius: "50%",
-    border: "none",
-    backgroundColor: "#00074d",
-    color: "white",
-    cursor: "pointer",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "12px"
-  },
   loading: {
     fontStyle: "italic",
     color: "#555"

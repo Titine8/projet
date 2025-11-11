@@ -1,0 +1,14 @@
+Contingence entre 'Nom' et 'Ville':
+Ville  Bordeaux  Lille  Lyon  Marseille  Nantes  Nice  Paris  Rennes  Strasbourg  Toulouse
+Nom                                                                                       
+Alice         0      0     0          0       0     0      1       0           0         0
+Bob           0      0     1          0       0     0      0       0           0         0
+Chloé         0      0     0          1       0     0      0       0           0         0
+David         0      1     0          0       0     0      0       0           0         0
+Emma          0      0     0          0       0     0      0       0           0         1
+Félix         0      0     0          0       0     1      0       0           0         0
+Hugo          1      0     0          0       0     0      0       0           0         0
+Inès          0      0     0          0       1     0      0       0           0         0
+Jules         0      0     0          0       0     0      0       0           1         0
+Léa           0      0     0          0       0     0      0       1           0         0
+

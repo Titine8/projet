@@ -231,10 +231,12 @@ def descriptive_stats(request, username, folder, filename):
                 })
         elif type_col == "cat":
             top_counts = data.value_counts(normalize=True).round(3) * 100
+            # Limiter aux 8 premières catégories pour le front
+            top_counts_limited = dict(list(top_counts.head(5).items()))
             record.update({
                 "nb_categories_uniques": int(data.nunique()),
                 "mode_val": str(data.mode().iloc[0]) if not data.mode().empty else "N/A",
-                "frequence": top_counts.to_dict()
+                "frequence": top_counts_limited  # ← Seulement les 8 premiers pour le front
             })
 
         return record
@@ -390,19 +392,27 @@ def descriptive_stats(request, username, folder, filename):
         
 
     # --- Fichier top categories pour colonnes catégorielles ---
+    # --- Fichier top categories pour colonnes catégorielles ---
+    # --- Fichier top categories pour colonnes catégorielles ---
     top_cat_file = os.path.join(user_folder, "top_categories.txt")
     try:
         with open(top_cat_file, "w", encoding="utf-8") as f_cat:
             for col_stat in stats:
                 if col_stat['type_colonne'] == "cat":
-                    freq_sorted = dict(sorted(col_stat['frequence'].items(), key=lambda x: x[1], reverse=True))
-                    f_cat.write(f"Colonne '{col_stat['nom_colonne']}':\n")
-                    for cat, pct in freq_sorted.items():
+                    # Ici on prend TOUTES les catégories depuis les données originales
+                    col_name = col_stat['nom_colonne']
+                    all_frequencies = df[col_name].value_counts(normalize=True).round(3) * 100  # ← Utiliser df[col_name]
+                    freq_sorted = dict(sorted(all_frequencies.items(), key=lambda x: x[1], reverse=True))
+                    f_cat.write(f"Colonne '{col_name}':\n")
+                    for cat, pct in freq_sorted.items():  # ← Toutes les catégories
                         f_cat.write(f"- {cat}: {pct}%\n")
                     f_cat.write("\n")
     except Exception as e:
         return JsonResponse({'error': f'Erreur lors de la sauvegarde du fichier top_categories.txt: {str(e)}'}, status=500)
-
+        
+    
+    
+    
     from sklearn.preprocessing import LabelEncoder, StandardScaler
 
     # --- Création du fichier encodé ---

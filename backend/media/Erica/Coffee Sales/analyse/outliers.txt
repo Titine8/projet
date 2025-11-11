@@ -1,0 +1,27 @@
+Colonne 'hour_of_day': 0 outliers détectés
+Exemples: []
+
+Colonne 'money': 0 outliers détectés
+Exemples: []
+
+Colonne 'Weekdaysort': 0 outliers détectés
+Exemples: []
+
+Colonne 'Monthsort': 0 outliers détectés
+Exemples: []
+
+Colonne 'Date_jour': 0 outliers détectés
+Exemples: []
+
+Colonne 'Date_annee': 0 outliers détectés
+Exemples: []
+
+Colonne 'Time_heure': 0 outliers détectés
+Exemples: []
+
+Colonne 'Time_minute': 0 outliers détectés
+Exemples: []
+
+Colonne 'Time_seconde': 0 outliers détectés
+Exemples: []
+

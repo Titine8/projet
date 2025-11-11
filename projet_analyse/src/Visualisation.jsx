@@ -4,7 +4,7 @@ import axios from "axios";
 
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer,
-  ScatterChart, Scatter, Legend
+  ScatterChart, Scatter, Legend, LineChart, Line
 } from "recharts";
 
 export default function Visualisation() {
@@ -23,8 +23,7 @@ export default function Visualisation() {
     categoryFilter: ""
   });
   const [filteredData, setFilteredData] = useState([]);
-  const [chatMessage, setChatMessage] = useState("");
-  const [chatMessages, setChatMessages] = useState([]);
+
   const token = localStorage.getItem("accessToken");
 
 
@@ -37,7 +36,10 @@ export default function Visualisation() {
         if (!response.ok) throw new Error("Erreur lors du chargement des influences");
         const resData = await response.json();
         setData(resData);
-        console.log("Données reçues:", resData);
+      console.log("✅ Données reçues:", resData);
+      console.log("🔗 Corrélations reçues:", resData.correlations); // AJOUTE CETTE LIGNE
+      console.log("📊 Nombre de corrélations:", resData.correlations ? resData.correlations.length : 0); // ET CELLE-CI
+
 
         // Générer des données simulées pour les graphiques
         generateSimulatedData(resData);
@@ -47,6 +49,7 @@ export default function Visualisation() {
         setLoading(false);
       }
     };
+// Ajouter après getNumericRange
 
     const generateSimulatedData = (influenceData) => {
       const simulatedData = [];
@@ -121,81 +124,45 @@ export default function Visualisation() {
   }, [decodedUsername, decodedFolder]);
 
   // Appliquer les filtres
-  useEffect(() => {
-    let filtered = [...rawData];
+  // Appliquer les filtres
+useEffect(() => {
+  let filtered = [...rawData];
 
-    // Filtre par plage numérique
-    if (filters.selectedVariable && filters.numericRange) {
-      const { min, max } = filters.numericRange;
-      filtered = filtered.filter(row => {
-        const value = parseFloat(row[filters.selectedVariable]);
-        return !isNaN(value) && value >= min && value <= max;
-      });
+  // Filtre par plage numérique
+  if (filters.selectedVariable && filters.numericRange && getVariableType(filters.selectedVariable) === "num") {
+    const { min, max } = filters.numericRange;
+    filtered = filtered.filter(row => {
+      const value = parseFloat(row[filters.selectedVariable]);
+      return !isNaN(value) && value >= min && value <= max;
+    });
+  }
+
+  // Filtre par catégorie
+  if (filters.selectedVariable && filters.categoryFilter && getVariableType(filters.selectedVariable) === "cat") {
+    console.log(`🎯 Filtrage catégoriel: ${filters.selectedVariable} = ${filters.categoryFilter}`);
+    console.log(`📊 Exemple de valeurs avant filtrage:`, rawData.slice(0, 5).map(row => row[filters.selectedVariable]));
+    
+    filtered = filtered.filter(row => 
+      String(row[filters.selectedVariable]) === String(filters.categoryFilter)
+    );
+    
+    console.log(`📈 Données après filtrage: ${filtered.length} lignes`);
+    if (filtered.length > 0) {
+      console.log(`🔍 Premières lignes filtrées:`, filtered.slice(0, 3));
     }
+  }
 
-    // Filtre par catégorie
-    if (filters.categoryFilter) {
-      filtered = filtered.filter(row =>
-        row[filters.selectedVariable] === filters.categoryFilter
-      );
-    }
+  console.log("🔍 Filtrage appliqué:", {
+    variable: filters.selectedVariable,
+    type: getVariableType(filters.selectedVariable),
+    filtreCatégorie: filters.categoryFilter,
+    donnéesOriginales: rawData.length,
+    donnéesFiltrées: filtered.length
+  });
 
-    setFilteredData(filtered);
-  }, [filters, rawData]);
+  setFilteredData(filtered);
+}, [filters, rawData]);
 
-  const handleSendMessage = async () => {
-    if (chatMessage.trim() === "") return;
-
-    console.log("Envoi du message :", chatMessage);
-
-    const newMessage = {
-      id: Date.now(),
-      text: chatMessage,
-      sender: "user",
-      timestamp: new Date().toLocaleTimeString()
-    };
-
-    console.log("Ajout message utilisateur au state :", newMessage);
-    setChatMessages(prev => [...prev, newMessage]);
-    setChatMessage("");
-
-    try {
-      console.log("Appel axios POST vers /api/chatbot/ avec payload :", { message: chatMessage });
-      const res = await axios.post(
-        "http://localhost:8000/api/analyse/chatbot/",
-        {
-          message: chatMessage,
-          username: decodedUsername,
-          folder: decodedFolder
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
-
-      console.log("Réponse du serveur :", res.data);
-
-      const botResponse = {
-        id: Date.now() + 1,
-        text: res.data.reply,
-        sender: "bot",
-        timestamp: new Date().toLocaleTimeString()
-      };
-
-      console.log("Ajout réponse du bot au state :", botResponse);
-      setChatMessages(prev => [...prev, botResponse]);
-    } catch (err) {
-      console.error("Erreur lors de l'appel axios :", err);
-      const botResponse = {
-        id: Date.now() + 1,
-        text: "Erreur du serveur, veuillez réessayer.",
-        sender: "bot",
-        timestamp: new Date().toLocaleTimeString()
-      };
-      console.log("Ajout message d'erreur du bot au state :", botResponse);
-      setChatMessages(prev => [...prev, botResponse]);
-    }
-  };
 
   const menuButtons = [
     { id: "statistique", label: "Statistique descriptive", action: () => navigate(`/analyse/${username}/${folder}`) },
@@ -237,13 +204,25 @@ export default function Visualisation() {
   };
 
   const getCategories = (variableName) => {
-    if (!data || !variableName) return [];
-    const colData = data.colonnes.find(c => c.nom_colonne === variableName);
-    if (colData?.type_colonne === "cat" && colData.frequence && colData.frequence !== "N/A") {
-      return Object.keys(colData.frequence);
-    }
-    return Array.from(new Set(rawData.map(row => row[variableName]).filter(Boolean))).slice(0, 10);
-  };
+  if (!data || !variableName) return [];
+  
+  const colData = data.colonnes.find(c => c.nom_colonne === variableName);
+  
+  // Priorité aux données de fréquence de l'API
+  if (colData?.type_colonne === "cat" && colData.frequence && colData.frequence !== "N/A") {
+    const categories = Object.keys(colData.frequence);
+    console.log(`📊 Catégories depuis API pour ${variableName}:`, categories);
+    return categories;
+  }
+  
+  // Fallback: extraire des données simulées
+  const uniqueCategories = Array.from(new Set(
+    rawData.map(row => String(row[variableName])).filter(Boolean)
+  )).slice(0, 10);
+  
+  console.log(`📊 Catégories extraites des données pour ${variableName}:`, uniqueCategories);
+  return uniqueCategories;
+};
 
   const getNumericRange = (variableName) => {
     if (!data || !variableName) return { min: 0, max: 100 };
@@ -264,19 +243,19 @@ export default function Visualisation() {
     if (!col) return "N/A";
     switch (col.type_colonne) {
       case "num":
-        return `Moyenne: ${col.moyenne?.toFixed(2) ?? "N/A"}`;
+        return `${col.moyenne?.toFixed(2) ?? "N/A"}`;
       case "cat":
         if (col.frequence && col.frequence !== "N/A") {
           const maxCat = Object.entries(col.frequence).sort((a, b) => b[1] - a[1])[0];
-          return `Modalité principale: ${maxCat[0]} (${maxCat[1]}%)`;
+          return `${maxCat[0]}`;
         }
-        return "Modalité principale: N/A";
+        return "N/A";
       case "date":
-        return `Première: ${col.premiere_date} | Dernière: ${col.derniere_date}`;
+        return `${col.premiere_date}`;
       case "time":
-        return `Première: ${col.premiere_heure} | Dernière: ${col.derniere_heure}`;
+        return `${col.premiere_heure}`;
       default:
-        return "";
+        return "N/A";
     }
   };
 
@@ -303,270 +282,630 @@ export default function Visualisation() {
   };
 
   const prepareChartData = (colName) => {
-    if (!data || filteredData.length === 0) {
-      console.log("❌ Données manquantes ou filteredData vide");
-      return [];
-    }
-
-    const colData = data.colonnes.find(c => c.nom_colonne === colName);
-    const targetCol = data.cible?.cible;
-
-    if (!colData || !targetCol) {
-      console.log("❌ colData ou targetCol manquant", { colName, colData, targetCol });
-      return [];
-    }
-
-    const targetName = data.cible.vrai_nom;
-    const targetType = targetCol.type_colonne;
-    const colType = colData.type_colonne;
-
-    console.log(`📈 Préparation: ${colName} (${colType}) vs ${targetName} (${targetType})`);
-
-    try {
-      // CAS 1: Cible numérique
-      if (targetType === "num") {
-        // Variable numérique -> Scatter plot
-        if (colType === "num") {
-          const points = filteredData
-            .map(row => ({
-              x: parseFloat(row[colName]) || 0,
-              y: parseFloat(row[targetName]) || 0
-            }))
-            .filter(point => !isNaN(point.x) && !isNaN(point.y));
-
-          console.log(`📊 Scatter data: ${points.length} points`);
-          return points;
-        }
-
-        // Variable catégorielle -> Bar chart des moyennes
-        if (colType === "cat") {
-          const categories = {};
-
-          filteredData.forEach(row => {
-            const category = row[colName];
-            const value = parseFloat(row[targetName]);
-
-            if (category && !isNaN(value)) {
-              if (!categories[category]) {
-                categories[category] = { sum: 0, count: 0 };
-              }
-              categories[category].sum += value;
-              categories[category].count += 1;
-            }
-          });
-
-          const result = Object.entries(categories)
-            .map(([category, data]) => ({
-              category,
-              moyenne: data.count > 0 ? data.sum / data.count : 0
-            }))
-            .sort((a, b) => b.moyenne - a.moyenne)
-            .slice(0, 8);
-
-          console.log(`📊 Bar data:`, result);
-          return result;
-        }
-      }
-
-      // CAS 2: Cible catégorielle  
-      else if (targetType === "cat") {
-        const targetCategories = Array.from(new Set(
-          filteredData.map(row => row[targetName]).filter(Boolean)
-        ));
-
-        // Variable numérique -> Distribution par catégorie
-        if (colType === "num") {
-          // Simple moyenne par catégorie cible pour commencer
-          const result = targetCategories.map(targetCat => {
-            const values = filteredData
-              .filter(row => row[targetName] === targetCat)
-              .map(row => parseFloat(row[colName]))
-              .filter(val => !isNaN(val));
-
-            const moyenne = values.length > 0
-              ? values.reduce((a, b) => a + b, 0) / values.length
-              : 0;
-
-            return {
-              category: targetCat,
-              moyenne: moyenne,
-              count: values.length
-            };
-          });
-
-          console.log(`📊 Cible cat vs var num:`, result);
-          return result;
-        }
-
-        // Variable catégorielle -> Tableau croisé
-        if (colType === "cat") {
-          const colCategories = Array.from(new Set(
-            filteredData.map(row => row[colName]).filter(Boolean)
-          )).slice(0, 8); // Limiter à 8 catégories
-
-          const result = colCategories.map(colCat => {
-            const item = { category: colCat };
-            let total = 0;
-
-            targetCategories.forEach(targetCat => {
-              const count = filteredData.filter(row =>
-                row[colName] === colCat && row[targetName] === targetCat
-              ).length;
-              item[targetCat] = count;
-              total += count;
-            });
-
-            // Ajouter le total pour les pourcentages
-            item.total = total;
-            return item;
-          });
-
-          console.log(`📊 Cible cat vs var cat:`, result);
-          return result;
-        }
-      }
-    } catch (error) {
-      console.error("❌ Erreur dans prepareChartData:", error);
-    }
-
+  if (!data || filteredData.length === 0) {
+    console.log("❌ Données manquantes ou filteredData vide", { 
+      hasData: !!data, 
+      filteredLength: filteredData.length 
+    });
     return [];
-  };
+  }
 
-  const renderChart = (inf, idx) => {
-    if (!data || !isColumnSupported(inf.column)) {
-      console.log("❌ Colonne non supportée:", inf.column);
-      return null;
-    }
+  console.log(`🔍 Préparation graphique ${colName}:`, {
+    donnéesFiltrées: filteredData.length,
+    premièresLignes: filteredData.slice(0, 3)
+  });
 
-    const colData = data.colonnes.find(c => c.nom_colonne === inf.column);
-    const targetCol = data.cible?.cible;
+  const colData = data.colonnes.find(c => c.nom_colonne === colName);
+  const targetCol = data.cible?.cible;
 
-    if (!colData || !targetCol) return null;
+  if (!colData || !targetCol) {
+    console.log("❌ colData ou targetCol manquant", { colName, colData, targetCol });
+    return [];
+  }
 
-    const chartData = prepareChartData(inf.column);
-    const targetName = data.cible.vrai_nom;
-    const targetType = targetCol.type_colonne;
-    const colType = colData.type_colonne;
+  const targetName = data.cible.vrai_nom;
+  const targetType = targetCol.type_colonne;
+  const colType = colData.type_colonne;
 
-    console.log(`🎨 Rendu: ${inf.column} (${colType}) vs ${targetName} (${targetType})`, chartData);
+  console.log(`📈 Préparation: ${colName} (${colType}) vs ${targetName} (${targetType})`);
 
-    if (chartData.length === 0) {
-      return (
-        <div key={idx} style={styles.scatterChart}>
-          <h4 style={styles.chartTitle}>{inf.column} vs {targetName}</h4>
-          <p style={styles.noData}>Aucune donnée disponible pour le graphique</p>
-        </div>
-      );
-    }
-
+  try {
     // CAS 1: Cible numérique
     if (targetType === "num") {
+      // Variable numérique -> Scatter plot
       if (colType === "num") {
-        return (
-          <div key={idx} style={styles.scatterChart}>
-            <h4 style={styles.chartTitle}>{inf.column} vs {targetName}</h4>
-            <ResponsiveContainer width="100%" height={250}>
-              <ScatterChart data={chartData}>
-                <CartesianGrid stroke="#e0e0e0" strokeDasharray="3 3" />
-                <XAxis dataKey="x" name={inf.column} type="number" />
-                <YAxis dataKey="y" name={targetName} type="number" />
-                <Tooltip cursor={{ strokeDasharray: '3 3' }} />
-                <Scatter data={chartData} fill="#8bb8d6" />
-              </ScatterChart>
-            </ResponsiveContainer>
-          </div>
-        );
+        const points = filteredData
+          .map(row => ({
+            x: parseFloat(row[colName]) || 0,
+            y: parseFloat(row[targetName]) || 0
+          }))
+          .filter(point => !isNaN(point.x) && !isNaN(point.y));
+
+        console.log(`📊 Scatter data: ${points.length} points`);
+        return points;
       }
 
+      // Variable catégorielle -> Bar chart des moyennes
       if (colType === "cat") {
-        return (
-          <div key={idx} style={styles.scatterChart}>
-            <h4 style={styles.chartTitle}>{inf.column} vs {targetName}</h4>
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={chartData}>
-                <CartesianGrid stroke="#e0e0e0" strokeDasharray="3 3" />
-                <XAxis
-                  dataKey="category"
-                  angle={-45}
-                  textAnchor="end"
-                  height={80}
-                  interval={0}
-                />
-                <YAxis />
-                <Tooltip formatter={(value) => value.toFixed(2)} />
-                <Bar dataKey="moyenne" fill="#8bb8d6" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        );
+        const categories = {};
+
+        filteredData.forEach(row => {
+          const category = row[colName];
+          const value = parseFloat(row[targetName]);
+
+          if (category && !isNaN(value)) {
+            if (!categories[category]) {
+              categories[category] = { sum: 0, count: 0 };
+            }
+            categories[category].sum += value;
+            categories[category].count += 1;
+          }
+        });
+
+        const result = Object.entries(categories)
+          .map(([category, data]) => ({
+            category,
+            moyenne: data.count > 0 ? data.sum / data.count : 0
+          }))
+          .sort((a, b) => b.moyenne - a.moyenne)
+          .slice(0, 8);
+
+        console.log(`📊 Bar data:`, result);
+        return result;
       }
     }
 
-    // CAS 2: Cible catégorielle
+    // CAS 2: Cible catégorielle  
     else if (targetType === "cat") {
       const targetCategories = Array.from(new Set(
         filteredData.map(row => row[targetName]).filter(Boolean)
       ));
 
+      // Variable numérique -> Distribution par catégorie
       if (colType === "num") {
-        // Graphique à barres groupées
-        return (
-          <div key={idx} style={styles.scatterChart}>
-            <h4 style={styles.chartTitle}>Moyenne de {inf.column} par {targetName}</h4>
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={chartData}>
-                <CartesianGrid stroke="#e0e0e0" strokeDasharray="3 3" />
-                <XAxis dataKey="category" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="moyenne" fill="#8bb8d6" name={`Moyenne ${inf.column}`} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        );
+        // Simple moyenne par catégorie cible pour commencer
+        const result = targetCategories.map(targetCat => {
+          const values = filteredData
+            .filter(row => row[targetName] === targetCat)
+            .map(row => parseFloat(row[colName]))
+            .filter(val => !isNaN(val));
+
+          const moyenne = values.length > 0
+            ? values.reduce((a, b) => a + b, 0) / values.length
+            : 0;
+
+          return {
+            category: targetCat,
+            moyenne: moyenne,
+            count: values.length
+          };
+        });
+
+        console.log(`📊 Cible cat vs var num:`, result);
+        return result;
       }
 
+      // Variable catégorielle -> Tableau croisé
       if (colType === "cat") {
-        // Graphique à barres empilées
-        return (
-          <div key={idx} style={styles.scatterChart}>
-            <h4 style={styles.chartTitle}>Distribution de {targetName} par {inf.column}</h4>
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={chartData}>
-                <CartesianGrid stroke="#e0e0e0" strokeDasharray="3 3" />
-                <XAxis
-                  dataKey="category"
-                  angle={-45}
-                  textAnchor="end"
-                  height={80}
-                  interval={0}
-                />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                {targetCategories.map((cat, index) => {
-                  const colors = ['#8bb8d6', '#ff6b6b', '#51cf66', '#ffd43b', '#cc5de8'];
-                  return (
-                    <Bar
-                      key={cat}
-                      dataKey={cat}
-                      fill={colors[index % colors.length]}
-                      stackId="a"
-                      name={cat}
-                    />
-                  );
-                })}
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        );
+        const colCategories = Array.from(new Set(
+          filteredData.map(row => row[colName]).filter(Boolean)
+        )).slice(0, 8); // Limiter à 8 catégories
+
+        const result = colCategories.map(colCat => {
+          const item = { category: colCat };
+          let total = 0;
+
+          targetCategories.forEach(targetCat => {
+            const count = filteredData.filter(row =>
+              row[colName] === colCat && row[targetName] === targetCat
+            ).length;
+            item[targetCat] = count;
+            total += count;
+          });
+
+          // Ajouter le total pour les pourcentages
+          item.total = total;
+          return item;
+        });
+
+        console.log(`📊 Cible cat vs var cat:`, result);
+        return result;
       }
     }
+  } catch (error) {
+    console.error("❌ Erreur dans prepareChartData:", error);
+  }
 
+  return [];
+};
+
+// Fonction pour calculer la régression linéaire
+const calculateRegression = (points) => {
+  if (points.length < 2) return [];
+  
+  const n = points.length;
+  let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+  
+  points.forEach(point => {
+    sumX += point.x;
+    sumY += point.y;
+    sumXY += point.x * point.y;
+    sumX2 += point.x * point.x;
+  });
+  
+  const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+  const intercept = (sumY - slope * sumX) / n;
+  
+  // Créer des points pour la ligne de régression
+  const minX = Math.min(...points.map(p => p.x));
+  const maxX = Math.max(...points.map(p => p.x));
+  
+  return [
+    { x: minX, y: slope * minX + intercept },
+    { x: maxX, y: slope * maxX + intercept }
+  ];
+};
+
+  // Ajouter après la fonction prepareChartData
+  const prepareCorrelationData = (var1, var2) => {
+    if (!data || filteredData.length === 0) return [];
+
+    const type1 = getVariableType(var1);
+    const type2 = getVariableType(var2);
+
+    try {
+      // CAS 1: Les deux variables sont numériques → Scatter plot
+      if (type1 === "num" && type2 === "num") {
+        const points = filteredData
+          .map(row => ({
+            x: parseFloat(row[var1]) || 0,
+            y: parseFloat(row[var2]) || 0
+          }))
+          .filter(point => !isNaN(point.x) && !isNaN(point.y));
+
+        return points;
+      }
+
+      // CAS 2: Une variable numérique et une catégorielle → Bar chart
+      if ((type1 === "num" && type2 === "cat") || (type1 === "cat" && type2 === "num")) {
+        const numVar = type1 === "num" ? var1 : var2;
+        const catVar = type1 === "cat" ? var1 : var2;
+
+        const categories = {};
+
+        filteredData.forEach(row => {
+          const category = row[catVar];
+          const value = parseFloat(row[numVar]);
+
+          if (category && !isNaN(value)) {
+            if (!categories[category]) {
+              categories[category] = { sum: 0, count: 0 };
+            }
+            categories[category].sum += value;
+            categories[category].count += 1;
+          }
+        });
+
+        const result = Object.entries(categories)
+          .map(([category, data]) => ({
+            category,
+            moyenne: data.count > 0 ? data.sum / data.count : 0
+          }))
+          .sort((a, b) => b.moyenne - a.moyenne)
+          .slice(0, 8);
+
+        return result;
+      }
+
+      // CAS 3: Les deux sont catégorielles → Stacked bar chart
+      if (type1 === "cat" && type2 === "cat") {
+        const categories1 = Array.from(new Set(
+          filteredData.map(row => row[var1]).filter(Boolean)
+        )).slice(0, 8);
+
+        const categories2 = Array.from(new Set(
+          filteredData.map(row => row[var2]).filter(Boolean)
+        )).slice(0, 5);
+
+        const result = categories1.map(cat1 => {
+          const item = { category: cat1 };
+          let total = 0;
+
+          categories2.forEach(cat2 => {
+            const count = filteredData.filter(row =>
+              row[var1] === cat1 && row[var2] === cat2
+            ).length;
+            item[cat2] = count;
+            total += count;
+          });
+
+          item.total = total;
+          return item;
+        });
+
+        return result;
+      }
+    } catch (error) {
+      console.error("❌ Erreur dans prepareCorrelationData:", error);
+    }
+
+    return [];
+  };
+  const renderChart = (inf, idx) => {
+  if (!data || !isColumnSupported(inf.column)) {
+    console.log("❌ Colonne non supportée:", inf.column);
     return null;
+  }
+
+  const colData = data.colonnes.find(c => c.nom_colonne === inf.column);
+  const targetCol = data.cible?.cible;
+
+  if (!colData || !targetCol) return null;
+
+  const chartData = prepareChartData(inf.column);
+  const targetName = data.cible.vrai_nom;
+  const targetType = targetCol.type_colonne;
+  const colType = colData.type_colonne;
+
+  // PALETTE BLEUE STYLÉE POUR TOUS LES GRAPHIQUES
+  const colors = {
+    scatter: '#0078D4',           // Bleu principal
+    bar: '#005A9E',               // Bleu foncé
+    bar2: '#00BCF2',              // Bleu clair
+    category: [
+      '#0078D4',                 // Bleu principal
+      '#005A9E',                 // Bleu foncé  
+      '#00BCF2',                 // Bleu clair
+      '#4A90E2',                 // Bleu moyen
+      '#106EBE'                  // Bleu corporate
+    ]
   };
 
+  console.log(`🎨 Rendu: ${inf.column} (${colType}) vs ${targetName} (${targetType})`, chartData);
+
+  if (chartData.length === 0) {
+    return (
+      <div key={idx} style={styles.scatterChart}>
+        <h4 style={styles.chartTitle}>{inf.column} vs {targetName}</h4>
+        <p style={styles.noData}>Aucune donnée disponible pour le graphique</p>
+      </div>
+    );
+  }
+
+  // CAS 1: Cible numérique
+  if (targetType === "num") {
+    // Variable numérique -> REGRESSION
+    if (colType === "num") {
+      const regressionLine = calculateRegression(chartData);
+      
+      return (
+        <div key={idx} style={styles.scatterChart}>
+          <h4 style={styles.chartTitle}>{inf.column} vs {targetName}</h4>
+          <ResponsiveContainer width="100%" height={250}>
+            <LineChart data={chartData}>
+              <CartesianGrid stroke="#f0f0f0" strokeDasharray="3 3" />
+              <XAxis 
+                dataKey="x" 
+                name={inf.column} 
+                type="number"
+                label={{ value: inf.column, position: 'insideBottom', offset: -5 }}
+              />
+              <YAxis 
+                dataKey="y" 
+                name={targetName}
+                label={{ value: targetName, angle: -90, position: 'insideLeft' }}
+              />
+              <Tooltip 
+                cursor={{ strokeDasharray: '3 3' }}
+                formatter={(value, name) => [value.toFixed(2), name]}
+                labelFormatter={(label) => `${inf.column}: ${label.toFixed(2)}`}
+              />
+              {/* Points de données */}
+              <Scatter 
+                data={chartData} 
+                fill={colors.scatter} 
+                opacity={0.6}
+                name="Données"
+              />
+              {/* Ligne de régression */}
+              <Line 
+                type="linear" 
+                data={regressionLine} 
+                dataKey="y"
+                stroke={colors.bar}
+                strokeWidth={2}
+                dot={false}
+                name="Tendance"
+              />
+              <Legend />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      );
+    }
+
+    // Variable catégorielle -> Bar chart des moyennes
+    if (colType === "cat") {
+      return (
+        <div key={idx} style={styles.scatterChart}>
+          <h4 style={styles.chartTitle}>{inf.column} vs {targetName}</h4>
+          <ResponsiveContainer width="100%" height={250}>
+            <BarChart data={chartData}>
+              <CartesianGrid stroke="#f0f0f0" strokeDasharray="3 3" />
+              <XAxis
+                dataKey="category"
+                angle={-45}
+                textAnchor="end"
+                height={80}
+                interval={0}
+              />
+              <YAxis />
+              <Tooltip formatter={(value) => value.toFixed(2)} />
+              <Bar dataKey="moyenne" fill={colors.bar} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      );
+    }
+  }
+
+  // CAS 2: Cible catégorielle
+  else if (targetType === "cat") {
+    const targetCategories = Array.from(new Set(
+      filteredData.map(row => row[targetName]).filter(Boolean)
+    ));
+
+    if (colType === "num") {
+      // Graphique à barres groupées
+      return (
+        <div key={idx} style={styles.scatterChart}>
+          <h4 style={styles.chartTitle}>Moyenne de {inf.column} par {targetName}</h4>
+          <ResponsiveContainer width="100%" height={250}>
+            <BarChart data={chartData}>
+              <CartesianGrid stroke="#f0f0f0" strokeDasharray="3 3" />
+              <XAxis dataKey="category" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="moyenne" fill={colors.bar2} name={`Moyenne ${inf.column}`} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      );
+    }
+
+    if (colType === "cat") {
+      // Graphique à barres empilées
+      return (
+        <div key={idx} style={styles.scatterChart}>
+          <h4 style={styles.chartTitle}>Distribution de {targetName} par {inf.column}</h4>
+          <ResponsiveContainer width="100%" height={250}>
+            <BarChart data={chartData}>
+              <CartesianGrid stroke="#f0f0f0" strokeDasharray="3 3" />
+              <XAxis
+                dataKey="category"
+                angle={-45}
+                textAnchor="end"
+                height={80}
+                interval={0}
+              />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              {targetCategories.map((cat, index) => (
+                <Bar
+                  key={cat}
+                  dataKey={cat}
+                  fill={colors.category[index % colors.category.length]}
+                  stackId="a"
+                  name={cat}
+                />
+              ))}
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      );
+    }
+  }
+
+  return null;
+};
+  // Ajouter après la fonction renderChart
+  // REMPLACER toute la fonction renderCorrelationChart par ceci :
+// REMPLACER toute la fonction renderCorrelationChart par ceci :
+const renderCorrelationChart = (correlation, idx) => {
+  const { var1, var2, correlation: corrValue } = correlation;
+
+  const chartData = prepareCorrelationData(var1, var2);
+  const type1 = getVariableType(var1);
+  const type2 = getVariableType(var2);
+
+  // PALETTE 100% BLEUE - Même thème que le reste
+  const colors = {
+    scatter: '#0078D4',           // Bleu principal
+    bar: '#005A9E',               // Bleu foncé
+    bar2: '#00BCF2',              // Bleu clair
+    category: [
+      '#0078D4',                 // Bleu principal
+      '#005A9E',                 // Bleu foncé  
+      '#00BCF2',                 // Bleu clair
+      '#4A90E2',                 // Bleu moyen
+      '#106EBE'                  // Bleu corporate
+    ]
+  };
+
+  if (chartData.length === 0) {
+    return (
+      <div key={`corr-${idx}`} style={styles.scatterChart}>
+        <h4 style={styles.chartTitle}>{var1} vs {var2} (corr: {corrValue}%)</h4>
+        <p style={styles.noData}>Aucune donnée disponible pour le graphique</p>
+      </div>
+    );
+  }
+
+  // CAS 1: Les deux variables sont numériques
+  // CAS 1: Les deux variables sont numériques -> REGRESSION
+if (type1 === "num" && type2 === "num") {
+  const regressionLine = calculateRegression(chartData);
+  
+  return (
+    <div key={`corr-${idx}`} style={styles.scatterChart}>
+      <h4 style={styles.chartTitle}>{var1} vs {var2} (corr: {corrValue}%)</h4>
+      <ResponsiveContainer width="100%" height={250}>
+        <LineChart data={chartData}>
+          <CartesianGrid stroke="#f0f0f0" strokeDasharray="3 3" />
+          <XAxis 
+            dataKey="x" 
+            name={var1} 
+            type="number"
+            label={{ value: var1, position: 'insideBottom', offset: -5 }}
+          />
+          <YAxis 
+            dataKey="y" 
+            name={var2}
+            label={{ value: var2, angle: -90, position: 'insideLeft' }}
+          />
+          <Tooltip 
+            cursor={{ strokeDasharray: '3 3' }}
+            formatter={(value, name) => [value.toFixed(2), name]}
+            labelFormatter={(label) => `${var1}: ${label.toFixed(2)}`}
+          />
+          {/* Points de données */}
+          <Scatter 
+            data={chartData} 
+            fill={colors.scatter} 
+            opacity={0.6}
+            name="Données"
+          />
+          {/* Ligne de régression */}
+          <Line 
+            type="linear" 
+            data={regressionLine} 
+            dataKey="y"
+            stroke={colors.bar}
+            strokeWidth={2}
+            dot={false}
+            name="Tendance"
+          />
+          <Legend />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+  // CAS 2: Une numérique et une catégorielle
+  if ((type1 === "num" && type2 === "cat") || (type1 === "cat" && type2 === "num")) {
+    const numVar = type1 === "num" ? var1 : var2;
+    const catVar = type1 === "cat" ? var1 : var2;
+    
+    return (
+      <div key={`corr-${idx}`} style={styles.scatterChart}>
+        <h4 style={styles.chartTitle}>Moyenne de {numVar} par {catVar} (corr: {corrValue}%)</h4>
+        <ResponsiveContainer width="100%" height={250}>
+          <BarChart data={chartData}>
+            <CartesianGrid stroke="#f0f0f0" strokeDasharray="3 3" />
+            <XAxis
+              dataKey="category"
+              angle={-45}
+              textAnchor="end"
+              height={80}
+              interval={0}
+            />
+            <YAxis />
+            <Tooltip formatter={(value) => value.toFixed(2)} />
+            <Bar dataKey="moyenne" fill={colors.bar} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    );
+  }
+
+  // CAS 3: Les deux catégorielles
+  if (type1 === "cat" && type2 === "cat") {
+    const categories2 = Array.from(new Set(
+      filteredData.map(row => row[var2]).filter(Boolean)
+    )).slice(0, 5);
+    
+    return (
+      <div key={`corr-${idx}`} style={styles.scatterChart}>
+        <h4 style={styles.chartTitle}>Distribution de {var2} par {var1} (corr: {corrValue}%)</h4>
+        <ResponsiveContainer width="100%" height={250}>
+          <BarChart data={chartData}>
+            <CartesianGrid stroke="#f0f0f0" strokeDasharray="3 3" />
+            <XAxis
+              dataKey="category"
+              angle={-45}
+              textAnchor="end"
+              height={80}
+              interval={0}
+            />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            {categories2.map((cat, index) => (
+              <Bar
+                key={cat}
+                dataKey={cat}
+                fill={colors.category[index % colors.category.length]}
+                stackId="a"
+                name={cat}
+              />
+            ))}
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    );
+  }
+
+  return null;
+};
+
+const calculateFilteredStats = (variableName) => {
+  if (!filteredData.length || !variableName) {
+    console.log(`❌ Données manquantes pour ${variableName}`, {
+      filteredLength: filteredData.length,
+      variableName
+    });
+    return null;
+  }
+  
+  const values = filteredData.map(row => row[variableName]).filter(val => val != null);
+  
+  if (values.length === 0) {
+    console.log(`⚠️ Aucune valeur pour ${variableName} dans les données filtrées`);
+    return null;
+  }
+  
+  const variableType = getVariableType(variableName);
+  console.log(`📊 Calcul stats pour ${variableName} (${variableType}):`, {
+    nbValeurs: values.length,
+    exemples: values.slice(0, 3)
+  });
+  
+  if (variableType === "num") {
+    const numericValues = values.map(val => parseFloat(val)).filter(val => !isNaN(val));
+    if (numericValues.length > 0) {
+      const moyenne = numericValues.reduce((a, b) => a + b, 0) / numericValues.length;
+      console.log(`✅ Moyenne calculée pour ${variableName}:`, moyenne);
+      return moyenne.toFixed(2);
+    }
+  } else {
+    // Variable catégorielle
+    const frequency = {};
+    values.forEach(val => {
+      const strVal = String(val);
+      frequency[strVal] = (frequency[strVal] || 0) + 1;
+    });
+    
+    const mostFrequent = Object.entries(frequency).sort((a, b) => b[1] - a[1])[0];
+    console.log(`✅ Catégorie fréquente pour ${variableName}:`, mostFrequent);
+    
+    return mostFrequent ? mostFrequent[0] : "N/A";
+  }
+  
+  return null;
+};
   return (
     <div style={styles.page}>
       <header style={styles.header}>
@@ -696,93 +1035,61 @@ export default function Visualisation() {
                 </div>
               </div>
 
-              {/* KPI Cards */}
-              <div style={styles.kpiContainer}>
-                <div style={styles.kpiCard}>
-                  <h3 style={styles.kpiTitle}>{data.cible.vrai_nom}</h3>
-                  <p style={styles.kpiText}>Type: {data.cible?.cible?.type_colonne || "N/A"}</p>
-                  <p style={styles.kpiText}>Influence: 100%</p>
-                  <p style={styles.kpiInfo}>{renderKeyInfo(data.cible?.cible)}</p>
-                </div>
+{/* KPI Cards avec filtres */}
+<div style={styles.kpiContainer}>
+  {/* KPI pour la cible */}
+  <div style={styles.kpiCard}>
+    <h3 style={styles.kpiTitle}>{data.cible.vrai_nom}</h3>
+    <p style={styles.kpiValue}>
+      {filteredData.length !== rawData.length 
+        ? calculateFilteredStats(data.cible.vrai_nom) || renderKeyInfo(data.cible?.cible)
+        : renderKeyInfo(data.cible?.cible)
+      }
+    </p>
+    {filteredData.length !== rawData.length && (
+      <p style={styles.kpiFiltered}>(Filtré)</p>
+    )}
+  </div>
 
-                {data.influences.map((inf, idx) => {
-                  const colData = data.colonnes.find(c => c.nom_colonne === inf.column);
-                  return (
-                    <div key={idx} style={styles.kpiCard}>
-                      <h3 style={styles.kpiTitle}>{inf.column}</h3>
-                      <p style={styles.kpiText}>Type: {colData?.type_colonne || "N/A"}</p>
-                      <p style={styles.kpiText}>Influence: {inf.influence}%</p>
-                      <p style={styles.kpiInfo}>{renderKeyInfo(colData)}</p>
-                    </div>
-                  );
-                })}
-              </div>
+  {/* KPI pour les variables d'influence */}
+  {data.influences.map((inf, idx) => {
+    const colData = data.colonnes.find(c => c.nom_colonne === inf.column);
+    const filteredValue = calculateFilteredStats(inf.column);
+    const originalValue = renderKeyInfo(colData);
+    
+    return (
+      <div key={idx} style={styles.kpiCard}>
+        <h3 style={styles.kpiTitle}>{inf.column}</h3>
+        <p style={styles.kpiValue}>
+          {filteredData.length !== rawData.length 
+            ? filteredValue || originalValue
+            : originalValue
+          }
+        </p>
+        {filteredData.length !== rawData.length && filteredValue && (
+          <p style={styles.kpiFiltered}></p>
+        )}
+      </div>
+    );
+  })}
+</div>
 
               {/* Charts de comparaison */}
+              {/* Charts de comparaison */}
               <div style={styles.chartsContainer}>
-                {data.influences.map((inf, idx) => renderChart(inf, idx))}
+                {/* Graphiques 1, 2, 3 : Cible vs Variables influentes */}
+                {data.influences.slice(0, 3).map((inf, idx) => renderChart(inf, idx))}
+
+                {/* Graphiques 4, 5 : Corrélations entre variables (sans la cible) */}
+                {data.correlations && data.correlations.map((corr, idx) =>
+                  renderCorrelationChart(corr, idx)
+                )}
               </div>
             </>
           )}
         </main>
 
-        {/* Chatbot Panel - Affiché en permanence */}
-        <aside style={styles.chatbotPanel}>
-          <div style={styles.chatbotHeader}>
-            <h3 style={styles.chatbotTitle}>🤖 Assistant IA</h3>
-          </div>
 
-          <div style={styles.chatbotContent}>
-            <div style={styles.chatMessages}>
-              {chatMessages.length === 0 ? (
-                <div style={styles.welcomeMessage}>
-                  <p>Bonjour ! Je suis votre assistant pour la visualisation de données.</p>
-                  <p>Posez-moi vos questions sur vos graphiques !</p>
-                </div>
-              ) : (
-                chatMessages.map(msg => (
-                  <div
-                    key={msg.id}
-                    style={{
-                      ...styles.message,
-                      ...(msg.sender === "user" ? styles.userMessage : styles.botMessage)
-                    }}
-                  >
-                    <div style={{
-                      ...styles.messageText,
-                      ...(msg.sender === "user" ? styles.userMessageText : styles.botMessageText)
-                    }}>
-                      {msg.text}
-                    </div>
-                    <div style={styles.messageTime}>{msg.timestamp}</div>
-                  </div>
-                ))
-              )}
-            </div>
-
-            <div style={styles.chatInputContainer}>
-              <textarea
-                value={chatMessage}
-                onChange={(e) => setChatMessage(e.target.value)}
-                onKeyPress={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSendMessage();
-                  }
-                }}
-                placeholder="Tapez votre message..."
-                style={styles.chatInput}
-                rows={1}
-              />
-              <button
-                onClick={handleSendMessage}
-                style={styles.sendButton}
-              >
-                ➤
-              </button>
-            </div>
-          </div>
-        </aside>
       </div>
     </div>
   );
@@ -848,6 +1155,7 @@ const styles = {
     transition: "all 0.3s ease"
   },
   mainContainer: {
+    width: "100%",
     display: "flex",
     gap: "20px",
     marginTop: "20px",
@@ -858,133 +1166,7 @@ const styles = {
     flex: 1,
     minHeight: "400px"
   },
-  chatbotPanel: {
-    width: "320px",
-    background: "white",
-    borderRadius: "12px",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-    overflow: "hidden",
-    position: "sticky",
-    top: "20px",
-    alignSelf: "flex-start"
-  },
-  chatbotHeader: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: "12px 15px",
-    backgroundColor: "#00074d",
-    color: "white"
-  },
-  chatbotTitle: {
-    margin: 0,
-    fontSize: "15px",
-    fontWeight: "600"
-  },
-  chatbotContent: {
-    display: "flex",
-    flexDirection: "column",
-    height: "350px"
-  },
-  chatMessages: {
-    flex: 1,
-    padding: "12px",
-    overflowY: "auto",
-    backgroundColor: "#f8f9fa",
-    display: "flex",
-    flexDirection: "column",
-    gap: "8px" // Espacement entre les messages
-  },
 
-  message: {
-    display: "flex",
-    flexDirection: "column",
-    marginBottom: "8px",
-    maxWidth: "85%", // Limite la largeur max
-    wordWrap: "break-word"
-  },
-
-  userMessage: {
-    alignSelf: "flex-end",
-    alignItems: "flex-end"
-  },
-
-  botMessage: {
-    alignSelf: "flex-start",
-    alignItems: "flex-start"
-  },
-
-  messageText: {
-    padding: "10px 14px",
-    borderRadius: "18px",
-    fontSize: "14px",
-    lineHeight: "1.4",
-    wordWrap: "break-word",
-    wordBreak: "break-word",
-    whiteSpace: "pre-wrap", // Respecte les sauts de ligne
-    maxWidth: "100%",
-    boxSizing: "border-box"
-  },
-
-  userMessageText: {
-    backgroundColor: "#00074d",
-    color: "white",
-    borderBottomRightRadius: "4px" // Petit détail style Messenger
-  },
-
-  botMessageText: {
-    backgroundColor: "#e9ecef",
-    color: "#333",
-    borderBottomLeftRadius: "4px"
-  },
-welcomeMessage: {
-    textAlign: "center",
-    color: "#666",
-    fontSize: "12px", // ← Juste changer cette ligne (était 13px avant)
-    lineHeight: "1.4",
-    padding: "15px 0"
-  },
-  messageTime: {
-    fontSize: "11px",
-    color: "#999",
-    marginTop: "4px",
-    padding: "0 4px"
-  },
-  chatInputContainer: {
-    display: "flex",
-    padding: "12px",
-    borderTop: "1px solid #e0e0e0",
-    backgroundColor: "white",
-    alignItems: "flex-end" // Ajoutez cette ligne
-  },
-  chatInput: {
-    flex: 1,
-    padding: "10px 12px",
-    border: "1px solid #ddd",
-    borderRadius: "20px",
-    outline: "none",
-    fontSize: "13px",
-    fontFamily: "inherit", // Important pour la cohérence
-    resize: "none", // Empêche le redimensionnement manuel
-    minHeight: "40px", // Hauteur minimale
-    maxHeight: "120px", // Hauteur maximale (3-4 lignes)
-    overflowY: "auto", // Scroll si besoin
-    lineHeight: "1.4"
-  },
-  sendButton: {
-    marginLeft: "8px",
-    width: "35px",
-    height: "35px",
-    borderRadius: "50%",
-    border: "none",
-    backgroundColor: "#00074d",
-    color: "white",
-    cursor: "pointer",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "12px"
-  },
   loading: {
     textAlign: "center",
     padding: 40,
@@ -1095,36 +1277,57 @@ welcomeMessage: {
     transition: "all 0.2s ease"
   },
   // Styles pour les KPI Cards
+  // Remplacer la section kpiContainer et kpiCard dans vos styles par :
+
+  // Styles pour les KPI Cards (version réduite style PBI)
   kpiContainer: {
     display: "flex",
-    gap: 16,
+    gap: 12,
     flexWrap: "wrap",
     marginBottom: 24
   },
   kpiCard: {
-    flex: "1 1 250px",
+    flex: "1 1 150px",
     background: "linear-gradient(135deg, #3399cc, #00074d)",
     color: "white",
-    borderRadius: 12,
-    padding: 20,
-    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-    transition: "transform 0.2s ease"
+    borderRadius: 8,
+    padding: 12,
+    boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+    transition: "transform 0.2s ease",
+    minHeight: "80px",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "center",
+    textAlign: "center"
   },
   kpiTitle: {
-    margin: "0 0 12px 0",
-    fontSize: 18,
-    fontWeight: "600"
+    margin: "0 0 8px 0",
+    fontSize: 14,
+    fontWeight: "600",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    width: "100%"
   },
   kpiText: {
-    margin: "4px 0",
-    fontSize: 14,
+    margin: "2px 0", // Marge réduite
+    fontSize: 12, // Police plus petite
     opacity: 0.9
+  }, kpiValue: {
+    fontSize: 20, // Taille grande pour la valeur principale
+    fontWeight: "bold",
+    margin: 0,
+    opacity: 1
   },
   kpiInfo: {
-    margin: "8px 0 0 0",
-    fontSize: 12,
+    margin: "6px 0 0 0",
+    fontSize: 10, // Police encore plus petite
     opacity: 0.8,
-    fontStyle: "italic"
+    fontStyle: "italic",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis"
   },
   // Styles pour les graphiques
   chartsContainer: {
@@ -1159,5 +1362,10 @@ welcomeMessage: {
     color: '#666',
     padding: '40px',
     fontStyle: 'italic'
-  }
+  },kpiFiltered: {
+  fontSize: 10,
+  opacity: 0.8,
+  fontStyle: 'italic',
+  margin: '2px 0 0 0'
+}
 };

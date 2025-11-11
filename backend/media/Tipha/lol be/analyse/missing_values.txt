@@ -1,0 +1,6 @@
+Total valeurs manquantes dans le dataset : 0
+
+- Colonne 'ID': 0 valeurs manquantes (0.0%)
+- Colonne 'Nom': 0 valeurs manquantes (0.0%)
+- Colonne 'Age': 0 valeurs manquantes (0.0%)
+- Colonne 'Ville': 0 valeurs manquantes (0.0%)
