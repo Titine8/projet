@@ -479,6 +479,38 @@ def use_model(request):
     except Exception as e:
         return Response({"error": f"Erreur lors de la prédiction ou du calcul du score : {str(e)}"}, status=500)
 
+    # 🔹 Feature Importance
+    feature_importance = None
+    if prediction_type in ["Régression", "Classification"]:
+        try:
+            if hasattr(model, 'feature_importances_'):
+                # For tree-based models
+                importance_scores = model.feature_importances_
+            elif hasattr(model, 'coef_'):
+                # For linear models
+                importance_scores = np.abs(model.coef_)
+                if len(importance_scores.shape) > 1:
+                    importance_scores = importance_scores.mean(axis=0)
+            else:
+                importance_scores = None
+                
+            if importance_scores is not None:
+                # Create feature importance mapping
+                features = X_test.columns.tolist()
+                feature_importance = {
+                    feature: float(score) 
+                    for feature, score in zip(features, importance_scores)
+                }
+                # Sort by importance
+                feature_importance = dict(sorted(
+                    feature_importance.items(), 
+                    key=lambda x: x[1], 
+                    reverse=True
+                ))
+        except Exception as e:
+            print(f"⚠️ Erreur calcul feature importance: {e}")
+            feature_importance = None
+
     # Charger selected_columns.json
     selected_columns_path = os.path.join(base_path, "selected_columns.json")
     if os.path.exists(selected_columns_path):
@@ -494,7 +526,8 @@ def use_model(request):
         "message": f"Modèle {model_name} évalué avec succès sur les données de test.",
         "model_name": model_name,
         "selected_columns": selected_columns_info,
-        "score": round(score, 4)
+        "score": round(score, 4),
+        "feature_importance": feature_importance  # ← NOUVEAU
     }
 
     return Response(response_data)
@@ -592,16 +625,34 @@ def predict(request):
 
         print(f"🔹 Prédiction finale en labels : {prediction_labels}")
 
-
-        
-        
+        # 🔹 Feature Importance for current prediction
+        current_prediction_importance = None
+        try:
+            if hasattr(model, 'feature_importances_'):
+                # Global feature importance
+                features = input_df.columns.tolist()
+                importance_scores = model.feature_importances_
+                current_prediction_importance = {
+                    feature: float(score) 
+                    for feature, score in zip(features, importance_scores)
+                }
+                # Sort by importance
+                current_prediction_importance = dict(sorted(
+                    current_prediction_importance.items(), 
+                    key=lambda x: x[1], 
+                    reverse=True
+                ))
+        except Exception as e:
+            print(f"⚠️ Erreur feature importance prédiction: {e}")
+                
+                
 
         return Response({
             "model_name": model_name,
             "input_values": input_values,
             "converted_inputs": converted_inputs,
             "prediction": prediction_labels.tolist() if hasattr(prediction_labels, 'tolist') else prediction_labels,
-
+            "feature_importance": current_prediction_importance,  # ← NOUVEAU
             "message": "Prédiction réussie"
         })
 

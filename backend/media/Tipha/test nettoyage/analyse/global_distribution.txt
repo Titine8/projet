@@ -1,0 +1,11 @@
+Résumé global du dataset :
+- Nombre de lignes : 5000
+- Nombre de colonnes : 7
+- Types de colonnes :
+  * Manufacturer: object, valeurs uniques : 5
+  * Model: object, valeurs uniques : 15
+  * Engine size: float64, valeurs uniques : 14
+  * Fuel type: object, valeurs uniques : 3
+  * Year of manufacture: int64, valeurs uniques : 39
+  * Mileage: int64, valeurs uniques : 4939
+  * Price: float64, valeurs uniques : 4503

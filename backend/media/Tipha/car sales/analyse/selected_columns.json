@@ -1,0 +1,84 @@
+{
+    "Manufacturer": {
+        "type": "categorical",
+        "categories": [
+            "BMW",
+            "Ford",
+            "Porsche",
+            "Toyota",
+            "VW"
+        ],
+        "mapping": {
+            "BMW": 0,
+            "Ford": 1,
+            "Porsche": 2,
+            "Toyota": 3,
+            "VW": 4
+        }
+    },
+    "Model": {
+        "type": "categorical",
+        "categories": [
+            "718 Cayman",
+            "911",
+            "Cayenne",
+            "Fiesta",
+            "Focus",
+            "Golf",
+            "M5",
+            "Mondeo",
+            "Passat",
+            "Polo",
+            "Prius",
+            "RAV4",
+            "X3",
+            "Yaris",
+            "Z4"
+        ],
+        "mapping": {
+            "718 Cayman": 0,
+            "911": 1,
+            "Cayenne": 2,
+            "Fiesta": 3,
+            "Focus": 4,
+            "Golf": 5,
+            "M5": 6,
+            "Mondeo": 7,
+            "Passat": 8,
+            "Polo": 9,
+            "Prius": 10,
+            "RAV4": 11,
+            "X3": 12,
+            "Yaris": 13,
+            "Z4": 14
+        }
+    },
+    "Engine size": {
+        "type": "numerical",
+        "min": 1.0,
+        "max": 5.0
+    },
+    "Fuel type": {
+        "type": "categorical",
+        "categories": [
+            "Diesel",
+            "Hybrid",
+            "Petrol"
+        ],
+        "mapping": {
+            "Diesel": 0,
+            "Hybrid": 1,
+            "Petrol": 2
+        }
+    },
+    "Year of manufacture": {
+        "type": "numerical",
+        "min": 1984.0,
+        "max": 2022.0
+    },
+    "Mileage": {
+        "type": "numerical",
+        "min": 1487.0,
+        "max": 398984.0
+    }
+}

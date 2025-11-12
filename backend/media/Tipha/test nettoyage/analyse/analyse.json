@@ -1,0 +1,72 @@
+{
+    "target": "Price",
+    "influences": [
+        {
+            "column": "Year of manufacture",
+            "influence": 71.65
+        },
+        {
+            "column": "Mileage",
+            "influence": 63.57
+        },
+        {
+            "column": "Engine size",
+            "influence": 39.54
+        },
+        {
+            "column": "Manufacturer",
+            "influence": 16.14
+        },
+        {
+            "column": "Model",
+            "influence": 2.12
+        },
+        {
+            "column": "Fuel type",
+            "influence": 1.34
+        }
+    ],
+    "encoding_mapping": {
+        "Manufacturer": [
+            "BMW",
+            "Ford",
+            "Porsche",
+            "Toyota",
+            "VW",
+            "nan"
+        ],
+        "Model": [
+            "718 Cayman",
+            "911",
+            "Cayenne",
+            "Fiesta",
+            "Focus",
+            "Golf",
+            "M5",
+            "Mondeo",
+            "Passat",
+            "Polo",
+            "Prius",
+            "RAV4",
+            "X3",
+            "Yaris",
+            "Z4",
+            "nan"
+        ],
+        "Fuel type": [
+            "Diesel",
+            "Hybrid",
+            "Petrol"
+        ]
+    },
+    "total_columns_analyzed": 6,
+    "data_shape": {
+        "rows": 5000,
+        "columns": 7
+    },
+    "categorical_columns_encoded": [
+        "Manufacturer",
+        "Model",
+        "Fuel type"
+    ]
+}

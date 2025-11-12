@@ -1,0 +1,29 @@
+Colonne 'Manufacturer':
+- VW: 29.799999999999997%
+- Ford: 29.4%
+- Toyota: 24.9%
+- BMW: 10.4%
+- Porsche: 5.5%
+
+Colonne 'Model':
+- Polo: 10.6%
+- Mondeo: 10.0%
+- Golf: 10.0%
+- Focus: 9.9%
+- Fiesta: 9.5%
+- Passat: 9.3%
+- RAV4: 8.9%
+- Yaris: 8.5%
+- Prius: 7.3999999999999995%
+- Z4: 3.9%
+- M5: 3.4000000000000004%
+- X3: 3.1%
+- 718 Cayman: 2.1%
+- 911: 1.7999999999999998%
+- Cayenne: 1.6%
+
+Colonne 'Fuel type':
+- Petrol: 52.7%
+- Diesel: 25.3%
+- Hybrid: 22.0%
+

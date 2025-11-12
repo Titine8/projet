@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState , useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from 'recharts';
@@ -24,6 +24,16 @@ export default function Prediction() {
   const [selectedCluster, setSelectedCluster] = useState(null);
   const [chatMessage, setChatMessage] = useState("");
   const [chatMessages, setChatMessages] = useState([]);
+  const [featureImportance, setFeatureImportance] = useState(null);
+  const [isBotTyping, setIsBotTyping] = useState(false); // ← NOUVEAU STATE
+
+  // 🔹 AJOUTEZ CES 2 LIGNES :
+  const chatMessagesEndRef = useRef(null);
+
+  // 🔹 AJOUTEZ CE useEffect :
+  useEffect(() => {
+    chatMessagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [chatMessages, isBotTyping]);
 
   const formatValue = (val) => {
     if (val === null || val === undefined || isNaN(val)) return "-";
@@ -110,7 +120,7 @@ export default function Prediction() {
       );
 
       setUseModelResponse(res.data);
-
+      setFeatureImportance(res.data.feature_importance || null);
       // Initialiser inputValues selon la structure enrichie
       const initialInputs = {};
       for (const col in res.data.selected_columns) {
@@ -185,6 +195,7 @@ export default function Prediction() {
 
       // 🔹 Afficher la prédiction reçue
       setPredictionResult(res.data.prediction);
+      setFeatureImportance(res.data.feature_importance || null);
     } catch (err) {
       console.error("Erreur lors de la prédiction :", err);
     }
@@ -206,6 +217,9 @@ export default function Prediction() {
     console.log("Ajout message utilisateur au state :", newMessage);
     setChatMessages(prev => [...prev, newMessage]);
     setChatMessage("");
+
+    // 🔹 Début du typing
+    setIsBotTyping(true);
 
     try {
       console.log("Appel axios POST vers /api/chatbot/ avec payload :", { message: chatMessage });
@@ -232,6 +246,7 @@ export default function Prediction() {
 
       console.log("Ajout réponse du bot au state :", botResponse);
       setChatMessages(prev => [...prev, botResponse]);
+
     } catch (err) {
       console.error("Erreur lors de l'appel axios :", err);
       const botResponse = {
@@ -242,6 +257,9 @@ export default function Prediction() {
       };
       console.log("Ajout message d'erreur du bot au state :", botResponse);
       setChatMessages(prev => [...prev, botResponse]);
+    } finally {
+      // 🔹 Arrêt du typing (dans tous les cas)
+      setIsBotTyping(false);
     }
   };
 
@@ -511,15 +529,42 @@ export default function Prediction() {
 
               {predictionResult !== null && (
                 <div style={styles.resultSection}>
-                  <h4 style={styles.resultTitle}>🎯 Résultat de la prédiction :</h4>
+                  <h4 style={styles.resultTitle}>🎯 Résultat de la prédiction</h4>
+                  <p style={styles.resultExplanation}>
+                    Valeur prédite pour <strong style={styles.highlight}>{targetName}</strong> :
+                  </p>
                   <div style={styles.resultValue}>
                     {typeof predictionResult === 'number'
                       ? predictionResult.toFixed(4)
                       : String(predictionResult)}
                   </div>
-                  <p style={styles.resultExplanation}>
-                    La prédiction pour <strong>{targetName}</strong> est :
-                  </p>
+                </div>
+              )}
+
+              {featureImportance && (
+                <div style={styles.featureImportanceSection}>
+                  <h4 style={styles.featureImportanceTitle}>📊 Importance des Variables</h4>
+                  <div style={styles.importanceList}>
+                    {Object.entries(featureImportance).map(([feature, importance], index) => (
+                      <div key={feature} style={styles.importanceItem}>
+                        <div style={styles.importanceHeader}>
+                          <span style={styles.importanceRank}>#{index + 1}</span>
+                          <span style={styles.importanceName}>{feature}</span>
+                          <span style={styles.importanceValue}>
+                            {typeof importance === 'number' ? importance.toFixed(4) : importance}
+                          </span>
+                        </div>
+                        <div style={styles.importanceBarContainer}>
+                          <div
+                            style={{
+                              ...styles.importanceBar,
+                              width: `${Math.min(100, (importance / Object.values(featureImportance)[0]) * 100)}%`
+                            }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
@@ -618,6 +663,7 @@ export default function Prediction() {
         </main>
 
         {/* Chatbot Panel */}
+        {/* Chatbot Panel */}
         <aside style={styles.chatbotPanel}>
           <div style={styles.chatbotHeader}>
             <h3 style={styles.chatbotTitle}>🤖 Assistant IA</h3>
@@ -649,6 +695,22 @@ export default function Prediction() {
                   </div>
                 ))
               )}
+
+              {/* ⭐⭐⭐ INDICATEUR DE TYPING ⭐⭐⭐ */}
+              {isBotTyping && (
+                <div style={{ ...styles.message, ...styles.botMessage }}>
+                  <div style={{ ...styles.messageText, ...styles.botMessageText }}>
+                    <div style={styles.typingIndicator}>
+                      <span style={{ ...styles.typingDot, ...styles.typingDot1 }}>•</span>
+                      <span style={{ ...styles.typingDot, ...styles.typingDot2 }}>•</span>
+                      <span style={{ ...styles.typingDot, ...styles.typingDot3 }}>•</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 🔹 AJOUTEZ CETTE LIGNE À LA FIN DES MESSAGES */}
+              <div ref={chatMessagesEndRef} />
             </div>
 
             <div style={styles.chatInputContainer}>
@@ -1157,5 +1219,95 @@ const styles = {
     alignItems: "center",
     justifyContent: "center",
     fontSize: "12px"
+  }, featureImportanceSection: {
+    marginTop: "20px",
+    padding: "20px",
+    backgroundColor: "#f8f9fa",
+    borderRadius: "8px",
+    border: "1px solid #e9ecef"
+  },
+  featureImportanceTitle: {
+    color: "#00074d",
+    marginBottom: "15px",
+    fontSize: "16px"
+  },
+  importanceList: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "10px"
+  },
+  importanceItem: {
+    padding: "10px",
+    backgroundColor: "white",
+    borderRadius: "6px",
+    border: "1px solid #ddd"
+  },
+  importanceHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: "8px"
+  },
+  importanceRank: {
+    fontWeight: "bold",
+    color: "#00074d",
+    minWidth: "30px"
+  },
+  importanceName: {
+    flex: 1,
+    marginLeft: "10px",
+    fontWeight: "600"
+  },
+  importanceValue: {
+    fontWeight: "bold",
+    color: "#00bcd4",
+    minWidth: "60px",
+    textAlign: "right"
+  },
+  importanceBarContainer: {
+    width: "100%",
+    height: "8px",
+    backgroundColor: "#e9ecef",
+    borderRadius: "4px",
+    overflow: "hidden"
+  },
+  importanceBar: {
+    height: "100%",
+    backgroundColor: "#00bcd4",
+    borderRadius: "4px",
+    transition: "width 0.3s ease"
+  },
+  typingIndicator: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '3px',
+    padding: '4px 0'
+  },
+  typingDot: {
+    fontSize: '12px', // ← PLUS PETIT
+    color: '#666',
+    animation: 'bounce 1.4s infinite ease-in-out',
+    animationFillMode: 'both'
+  },
+  typingDot1: {
+    animationDelay: '-0.32s'
+  },
+  typingDot2: {
+    animationDelay: '-0.16s'
+  },
+  typingDot3: {
+    animationDelay: '0s'
+  },
+  '@global': {
+    '@keyframes bounce': {
+      '0%, 60%, 100%': {
+        transform: 'translateY(0)',
+        opacity: 0.7
+      },
+      '30%': {
+        transform: 'translateY(-3px)', // ← ANIMATION PLUS DOUCE
+        opacity: 1
+      }
+    }
   }
 };
