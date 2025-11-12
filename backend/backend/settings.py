@@ -28,7 +28,7 @@ SECRET_KEY = 'django-insecure-ai(0uo+le(mxhpfe)_mycc*q04ftcnz*5oj6yg&*0tqfcm01w_
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -59,7 +59,8 @@ REST_FRAMEWORK = {
 }
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",  # adresse de ton front React
+    #"http://localhost:5173",  # adresse de ton front React
+    "https://ton-frontend.vercel.app",  # on mettra l'URL finale après le déploiement React
 ]
 
 HF_TOKEN = os.getenv("HF_TOKEN")
