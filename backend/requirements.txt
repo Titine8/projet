@@ -15,3 +15,6 @@ joblib
 django-extensions
 requests
 ollama
+sentence_transformers
+faiss
+pickle
