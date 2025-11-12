@@ -15,5 +15,3 @@ joblib
 django-extensions
 requests
 ollama
-sentence-transformers
-faiss-cpu==1.7.3
