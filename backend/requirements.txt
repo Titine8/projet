@@ -12,3 +12,4 @@ lime
 scipy
 python-dotenv
 joblib
+django-extensions
