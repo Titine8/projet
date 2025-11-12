@@ -6,9 +6,7 @@ import base64
 from io import BytesIO
 
 import pandas as pd
-import matplotlib
-matplotlib.use('Agg')  # Backend non interactif pour serveur
-import matplotlib.pyplot as plt
+
 import numpy as np
 
 from sklearn.model_selection import train_test_split

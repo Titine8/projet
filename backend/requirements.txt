@@ -6,7 +6,6 @@ django-cors-headers
 pandas
 numpy
 scikit-learn
-matplotlib
 shap
 lime
 scipy
