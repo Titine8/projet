@@ -23,7 +23,6 @@ from sklearn.metrics import (
     silhouette_score, calinski_harabasz_score, davies_bouldin_score
 )
 
-import shap
 from lime.lime_tabular import LimeTabularExplainer
 
 from rest_framework.decorators import api_view, permission_classes
