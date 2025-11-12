@@ -13,3 +13,4 @@ scipy
 python-dotenv
 joblib
 django-extensions
+requests
