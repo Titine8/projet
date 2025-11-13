@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid"; // pour id unique des lignes de relation
-
+import { API_BASE_URL } from './config';
 // ---------------- Header ----------------
 function Header() {
   const navigate = useNavigate();
@@ -313,7 +313,7 @@ export default function ImportPage() {
     }
 
     try {
-      const response = await axios.get("http://localhost:8000/api/import/upload/", {
+      const response = await axios.get(`${API_BASE_URL}/api/import/upload/`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setUserFolders(response.data.folders || []);
@@ -328,7 +328,7 @@ export default function ImportPage() {
     setPreviewLoading(true);
     try {
       const res = await axios.get(
-        `http://localhost:8000/api/import/folder/${encodeURIComponent(folderName)}/data_preview/`,
+        `${API_BASE_URL}/api/import/folder/${encodeURIComponent(folderName)}/data_preview/`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       console.log("Données reçues:", res.data); // ← AJOUTEZ CETTE LIGNE
@@ -352,7 +352,7 @@ export default function ImportPage() {
 
     try {
       const response = await axios.get(
-        `http://localhost:8000/api/import/folder/${encodeURIComponent(folderName)}/files/`,
+        `${API_BASE_URL}/api/import/folder/${encodeURIComponent(folderName)}/files/`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setOpenFolders((prev) => ({ ...prev, [folderName]: response.data.files || [] }));
@@ -367,7 +367,7 @@ export default function ImportPage() {
 
     try {
       await axios.delete(
-        `http://localhost:8000/api/import/folder/${encodeURIComponent(folderName)}/`,
+        `${API_BASE_URL}/api/import/folder/${encodeURIComponent(folderName)}/`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setMessage(`Dossier "${folderName}" supprimé.`);
@@ -384,7 +384,7 @@ export default function ImportPage() {
 
     try {
       await axios.delete(
-        `http://localhost:8000/api/import/folder/${encodeURIComponent(folderName)}/${encodeURIComponent(fileName)}/`,
+        `${API_BASE_URL}/api/import/folder/${encodeURIComponent(folderName)}/${encodeURIComponent(fileName)}/`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setOpenFolders((prev) => ({ ...prev, [folderName]: prev[folderName].filter((f) => f !== fileName) }));
@@ -404,7 +404,7 @@ export default function ImportPage() {
     const token = localStorage.getItem("accessToken");
     try {
       const res = await axios.get(
-        `http://localhost:8000/api/import/folder/${encodeURIComponent(folderName)}/${encodeURIComponent(fileName)}/columns/`,
+        `${API_BASE_URL}/api/import/folder/${encodeURIComponent(folderName)}/${encodeURIComponent(fileName)}/columns/`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setFileColumns(prev => ({
@@ -446,7 +446,7 @@ export default function ImportPage() {
     formData.append("subfolder", subfolderName.trim());
 
     try {
-      await axios.post("http://localhost:8000/api/import/upload/", formData, {
+      await axios.post(`${API_BASE_URL}/api/import/upload/`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data"
@@ -472,7 +472,7 @@ export default function ImportPage() {
 
     try {
       const res = await axios.get(
-        `http://localhost:8000/api/import/folder/${encodeURIComponent(folderName)}/files/`,
+        `${API_BASE_URL}/api/import/folder/${encodeURIComponent(folderName)}/files/`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -484,7 +484,7 @@ export default function ImportPage() {
         setSingleFileModalOpen(true);
         const uniqueFile = files[0];
         const resCols = await axios.get(
-          `http://localhost:8000/api/import/folder/${encodeURIComponent(folderName)}/${encodeURIComponent(uniqueFile)}/columns/`,
+          `${API_BASE_URL}/api/import/folder/${encodeURIComponent(folderName)}/${encodeURIComponent(uniqueFile)}/columns/`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setColumns(resCols.data.columns || []);
@@ -500,21 +500,21 @@ export default function ImportPage() {
 
       // 🔹 Étape 1 : vérifier relations existantes
       let checkRes = await axios.get(
-        `http://localhost:8000/api/import/folder/${encodeURIComponent(folderName)}/check_relations_file/`,
+        `${API_BASE_URL}/api/import/folder/${encodeURIComponent(folderName)}/check_relations_file/`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
       if (!checkRes.data.exists) {
         // 🔹 Étape 2 : créer les relations si pas existantes
         await axios.post(
-          `http://localhost:8000/api/import/folder/${encodeURIComponent(folderName)}/relations/`,
+          `${API_BASE_URL}/api/import/folder/${encodeURIComponent(folderName)}/relations/`,
           {},
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
         // 🔹 Étape 3 : rappeler check_relations pour récupérer les relations créées
         checkRes = await axios.get(
-          `http://localhost:8000/api/import/folder/${encodeURIComponent(folderName)}/check_relations_file/`,
+          `${API_BASE_URL}/api/import/folder/${encodeURIComponent(folderName)}/check_relations_file/`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
       }
@@ -528,7 +528,7 @@ export default function ImportPage() {
       // 🔹 Récupérer la cible si déjà définie
       try {
         const cibleRes = await axios.get(
-          `http://localhost:8000/api/import/folder/${encodeURIComponent(folderName)}/get_cible/`,
+          `${API_BASE_URL}/api/import/folder/${encodeURIComponent(folderName)}/get_cible/`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         if (cibleRes.data.cible) {
@@ -544,7 +544,7 @@ export default function ImportPage() {
       const columnsData = await Promise.all(
         files.map(async (file) => {
           const res = await axios.get(
-            `http://localhost:8000/api/import/folder/${encodeURIComponent(folderName)}/${encodeURIComponent(file)}/columns/`,
+            `${API_BASE_URL}/api/import/folder/${encodeURIComponent(folderName)}/${encodeURIComponent(file)}/columns/`,
             { headers: { Authorization: `Bearer ${token}` } }
           );
           return { file, columns: res.data.columns || [] };
@@ -918,7 +918,7 @@ export default function ImportPage() {
                       const token = localStorage.getItem("accessToken");
                       try {
                         const response = await axios.post(
-                          `http://localhost:8000/api/import/folder/${encodeURIComponent(folderToAnalyze)}/save_relations/`,
+                          `${API_BASE_URL}/api/import/folder/${encodeURIComponent(folderToAnalyze)}/save_relations/`,
                           { relations: dataToSave },
                           {
                             headers: {
@@ -985,7 +985,7 @@ export default function ImportPage() {
                       const token = localStorage.getItem("accessToken");
                       try {
                         await axios.post(
-                          `http://localhost:8000/api/import/folder/${encodeURIComponent(folderToAnalyze)}/save_cible/`,
+                          `${API_BASE_URL}/api/import/folder/${encodeURIComponent(folderToAnalyze)}/save_cible/`,
                           { cible },
                           { headers: { Authorization: `Bearer ${token}` } }
                         );
@@ -1139,7 +1139,7 @@ export default function ImportPage() {
                     const token = localStorage.getItem("accessToken");
                     try {
                       await axios.post(
-                        `http://localhost:8000/api/import/folder/${encodeURIComponent(folderToAnalyze)}/save_cible/`,
+                        `${API_BASE_URL}/api/import/folder/${encodeURIComponent(folderToAnalyze)}/save_cible/`,
                         { cible },
                         { headers: { Authorization: `Bearer ${token}` } }
                       );
@@ -1232,7 +1232,7 @@ export default function ImportPage() {
                   try {
                     // ⚡ Appel à l'endpoint prepare_single_combined
                     await axios.post(
-                      `http://localhost:8000/api/import/folder/${encodeURIComponent(folderToAnalyze)}/prepare_single_combined/`,
+                      `${API_BASE_URL}/api/import/folder/${encodeURIComponent(folderToAnalyze)}/prepare_single_combined/`,
                       {}, // pas de body nécessaire
                       { headers: { Authorization: `Bearer ${token}` } }
                     );

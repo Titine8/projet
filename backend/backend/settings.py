@@ -60,7 +60,7 @@ REST_FRAMEWORK = {
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",  # adresse de ton front React
-    #"https://ton-frontend.vercel.app",  # on mettra l'URL finale après le déploiement React
+    "https://projet-rose-sigma.vercel.app",  # on mettra l'URL finale après le déploiement React
 ]
 
 HF_TOKEN = os.getenv("HF_TOKEN")

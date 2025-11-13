@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer,
   ScatterChart, Scatter, Legend, LineChart, Line
 } from "recharts";
+import { API_BASE_URL } from './config';
 
 export default function Visualisation() {
   const { username, folder } = useParams();
@@ -31,7 +31,7 @@ export default function Visualisation() {
     const fetchInfluence = async () => {
       try {
         const response = await fetch(
-          `http://localhost:8000/api/visualisation/influence-columns/?username=${decodedUsername}&folder=${decodedFolder}&file=file_combined.csv`
+          `${API_BASE_URL}/api/visualisation/influence-columns/?username=${decodedUsername}&folder=${decodedFolder}&file=file_combined.csv`
         );
         if (!response.ok) throw new Error("Erreur lors du chargement des influences");
         const resData = await response.json();

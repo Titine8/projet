@@ -13,8 +13,7 @@ import {
 } from "recharts";
 import { useMemo } from "react";
 import InfluenceChart from "./InfluenceChart";
-
-
+import { API_BASE_URL } from './config';
 
 export default function AnalyseTab() {
   const { username, folder } = useParams();
@@ -37,7 +36,7 @@ export default function AnalyseTab() {
   const fetchInfluences = async () => {
     setLoading(true);
     try {
-      const res = await axios.get("http://localhost:8000/api/analyse/influence/", {
+      const res = await axios.get(`${API_BASE_URL}/api/analyse/influence/`, {
         headers: { Authorization: `Bearer ${token}` },
         params: { username: decodedUsername, folder: decodedFolder, file: "file_combined.csv" },
       });
@@ -75,7 +74,7 @@ export default function AnalyseTab() {
     try {
       console.log("Appel axios POST vers /api/chatbot/ avec payload :", { message: chatMessage });
       const res = await axios.post(
-        "http://localhost:8000/api/analyse/chatbot/",
+        `${API_BASE_URL}/api/analyse/chatbot/`,
         {
           message: chatMessage,
           username: decodedUsername,

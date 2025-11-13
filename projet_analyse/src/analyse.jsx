@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { format, differenceInDays } from "date-fns";
-
+import { API_BASE_URL } from './config';
 
 export default function Analyse() {
   const { username, folder } = useParams();
@@ -26,7 +26,7 @@ export default function Analyse() {
   const fetchFile = async () => {
     setLoading(true);
     try {
-      const res = await axios.get("http://localhost:8000/api/statistique/files/", {
+      const res = await axios.get(`${API_BASE_URL}/api/statistique/files/`, {
         headers: { Authorization: `Bearer ${token}` },
         params: { username: decodedUsername, folder: decodedFolder }
       });
@@ -48,7 +48,7 @@ export default function Analyse() {
     if (stats[fileName]) return;
     try {
       await axios.post(
-        `http://localhost:8000/api/statistique/${encodeURIComponent(decodedUsername)}/${encodeURIComponent(decodedFolder)}/${encodeURIComponent(fileName)}/`,
+        `${API_BASE_URL}/api/statistique/${encodeURIComponent(decodedUsername)}/${encodeURIComponent(decodedFolder)}/${encodeURIComponent(fileName)}/`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -62,7 +62,7 @@ export default function Analyse() {
   const getStats = async (fileName) => {
   try {
     const res = await axios.get(
-      `http://localhost:8000/api/statistique/${encodeURIComponent(decodedUsername)}/${encodeURIComponent(decodedFolder)}/stats-json/`,
+      `${API_BASE_URL}/api/statistique/${encodeURIComponent(decodedUsername)}/${encodeURIComponent(decodedFolder)}/stats-json/`,
       { headers: { Authorization: `Bearer ${token}` } }
     );
     

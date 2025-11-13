@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from 'recharts';
 
+import { API_BASE_URL } from './config';
 
 export default function Prediction() {
   const { username, folder } = useParams();
@@ -46,7 +47,7 @@ export default function Prediction() {
     const fetchTargetName = async () => {
       try {
         const res = await axios.get(
-          "http://localhost:8000/api/prediction/get_target_name/",
+          `${API_BASE_URL}/api/prediction/get_target_name/`,
           {
             headers: { Authorization: `Bearer ${token}` },
             params: { username: decodedUsername, folder: decodedFolder },
@@ -67,8 +68,8 @@ export default function Prediction() {
 
     const url =
       predictionType === "Prévision temporelle"
-        ? "http://localhost:8000/api/prediction/search_model_prevision/"
-        : "http://localhost:8000/api/prediction/search_model/";
+        ? `${API_BASE_URL}/api/prediction/search_model_prevision/`
+        : `${API_BASE_URL}/api/prediction/search_model/`;
 
     try {
       const res = await axios.post(
@@ -102,8 +103,8 @@ export default function Prediction() {
 
     const url =
       predictionType === "Prévision temporelle"
-        ? "http://localhost:8000/api/prediction/use_model_prevision/"
-        : "http://localhost:8000/api/prediction/use_model/";
+        ? `${API_BASE_URL}/api/prediction/use_model_prevision/`
+        : `${API_BASE_URL}/api/prediction/use_model/`;
 
     try {
       const res = await axios.post(
@@ -181,7 +182,7 @@ export default function Prediction() {
 
     try {
       const res = await axios.post(
-        "http://localhost:8000/api/prediction/predict/",
+        `${API_BASE_URL}/api/prediction/predict/`,
         {
           username: decodedUsername,
           folder: decodedFolder,
@@ -224,7 +225,7 @@ export default function Prediction() {
     try {
       console.log("Appel axios POST vers /api/chatbot/ avec payload :", { message: chatMessage });
       const res = await axios.post(
-        "http://localhost:8000/api/analyse/chatbot/",
+        `${API_BASE_URL}/api/analyse/chatbot/`,
         {
           message: chatMessage,
           username: decodedUsername,

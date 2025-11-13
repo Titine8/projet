@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { API_BASE_URL } from './config';
 
 function Modal({ show, onClose, title, children }) {
   if (!show) return null;
@@ -70,7 +71,7 @@ export default function RegisterPage() {
 
   const checkUsernameExists = async (username) => {
     try {
-      const res = await fetch(`http://localhost:8000/api/accounts/check_username/?username=${encodeURIComponent(username)}`);
+      const res = await fetch(`${API_BASE_URL}/api/accounts/check_username/?username=${encodeURIComponent(username)}`);
       const data = await res.json();
       return data.exists;
     } catch {
@@ -80,7 +81,7 @@ export default function RegisterPage() {
 
   const checkEmailExists = async (email) => {
     try {
-      const res = await fetch(`http://localhost:8000/api/accounts/check_email/?email=${encodeURIComponent(email)}`);
+      const res = await fetch(`${API_BASE_URL}/api/accounts/check_email/?email=${encodeURIComponent(email)}`);
       const data = await res.json();
       return data.exists;
     } catch {
@@ -147,7 +148,7 @@ export default function RegisterPage() {
     }
 
     try {
-      const response = await fetch("http://localhost:8000/api/accounts/register/", {
+      const response = await fetch(`${API_BASE_URL}/api/accounts/register/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, email, password, password2 }),
