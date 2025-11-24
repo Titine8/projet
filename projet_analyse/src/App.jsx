@@ -15,7 +15,7 @@ export default function App() {
 
   const styles = {
     page: {
-      width: "100vw",
+      width: "100%",
       minHeight: "100vh",
       background: "linear-gradient(135deg, #e6f2f8 0%, #cfe3f2 50%, #00074d 100%)",
       color: "#00074d",

@@ -1,6 +1,0 @@
-Colonne 'ID': 0 outliers détectés
-Exemples: []
-
-Colonne 'Age': 0 outliers détectés
-Exemples: []
-

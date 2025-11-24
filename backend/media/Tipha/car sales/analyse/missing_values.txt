@@ -1,9 +1,0 @@
-Total valeurs manquantes dans le dataset : 0
-
-- Colonne 'Manufacturer': 0 valeurs manquantes (0.0%)
-- Colonne 'Model': 0 valeurs manquantes (0.0%)
-- Colonne 'Engine size': 0 valeurs manquantes (0.0%)
-- Colonne 'Fuel type': 0 valeurs manquantes (0.0%)
-- Colonne 'Year of manufacture': 0 valeurs manquantes (0.0%)
-- Colonne 'Mileage': 0 valeurs manquantes (0.0%)
-- Colonne 'Price': 0 valeurs manquantes (0.0%)

@@ -181,7 +181,7 @@ from django.conf import settings
 import pickle
 import numpy as np
 
-API_KEY = "45be6155dee04ec1bc5a8b82900600e2.eGGiJpghbTTumj-LV7Y-sVtM"
+API_KEY = "ef3e42fe30174c56ad0c5324b1361d6c.MsS63RTt2EhQeqDGqv4sp0Qp"
 
 client = Client(
     host="https://ollama.com",
@@ -294,9 +294,11 @@ def chatbot(request):
 
     messages = [
         {'role': 'system', 'content': (
-            "Tu réponds toujours de façon courte et précise. "
+            "Tu réponds toujours de façon courte et précise. deux phrases maximum, des phrase courtes et simples. "
+            " sache aussi que la personne en face de toi n'est pas un profil technique, parle de facon a ce qu'il comprenne"
             "Utilise le texte fourni comme source pour les questions sur le dataset. "
             "Si il n'y a pas d'information dans le dataset, réponds normalement."
+            "ne dis jamais que on t'a aps fournis une informations, contourne la question en disant ce que tu sais"
         )},
         {'role': 'user', 'content': f"{context}\nQuestion : {user_message}"}
     ]
@@ -318,3 +320,138 @@ def chatbot(request):
             "reply": f"Erreur lors de l'appel à Ollama: {str(e)}",
             "status": "error"
         })
+
+def get_columns_list(request):
+    username = request.GET.get("username")
+    folder = request.GET.get("folder")
+    file_name = request.GET.get("file", "file_combined.csv")
+
+    if not username or not folder:
+        return JsonResponse({"error": "Paramètres manquants"}, status=400)
+
+    user_folder = os.path.join(settings.MEDIA_ROOT, username, folder, "analyse")
+    file_path = os.path.join(user_folder, file_name)
+
+    if not os.path.exists(file_path):
+        return JsonResponse({"error": "Fichier introuvable"}, status=404)
+
+    try:
+        df = pd.read_csv(file_path)
+        columns_info = []
+        
+        for col in df.columns:
+            col_type = str(df[col].dtype)
+            sample_values = df[col].dropna().head(5).tolist()
+            unique_count = df[col].nunique()
+            
+            columns_info.append({
+                "name": col,
+                "type": col_type,
+                "sample_values": sample_values,
+                "unique_count": unique_count
+            })
+
+        return JsonResponse({
+            "columns": columns_info,
+            "total_columns": len(df.columns),
+            "total_rows": len(df)
+        })
+
+    except Exception as e:
+        return JsonResponse({"error": f"Erreur lecture CSV : {str(e)}"}, status=400)
+
+
+@api_view(["POST"])
+def get_chart_data(request):
+    username = request.data.get("username")
+    folder = request.data.get("folder")
+    selected_columns = request.data.get("columns", [])
+    file_name = request.data.get("file", "file_combined.csv")
+
+    if not username or not folder or not selected_columns:
+        return Response({"error": "Paramètres manquants"}, status=400)
+
+    user_folder = os.path.join(settings.MEDIA_ROOT, username, folder, "analyse")
+    file_path = os.path.join(user_folder, file_name)
+
+    if not os.path.exists(file_path):
+        return Response({"error": "Fichier introuvable"}, status=404)
+
+    try:
+        df = pd.read_csv(file_path)
+        
+        # Vérifier que les colonnes sélectionnées existent
+        for col in selected_columns:
+            if col not in df.columns:
+                return Response({"error": f"Colonne '{col}' introuvable"}, status=400)
+
+        # Agrégation des données selon le nombre de colonnes sélectionnées
+        if len(selected_columns) == 1:
+            # 1 colonne : distribution simple
+            col = selected_columns[0]
+            if df[col].dtype in ['object', 'category']:
+                # Colonne catégorielle : comptage
+                aggregated = df[col].value_counts().reset_index()
+                aggregated.columns = ['name', 'value']
+                chart_data = aggregated.to_dict('records')
+            else:
+                # Colonne numérique : histogramme avec 10 bins
+                import numpy as np
+                # Supprimer les valeurs NaN
+                clean_data = df[col].dropna()
+                if len(clean_data) > 0:
+                    # Créer des bins pour l'histogramme
+                    hist, bins = np.histogram(clean_data, bins=10)
+                    chart_data = []
+                    for i in range(len(hist)):
+                        chart_data.append({
+                            "name": f"{bins[i]:.1f}-{bins[i+1]:.1f}",
+                            "value": int(hist[i])
+                        })
+                else:
+                    chart_data = []
+
+        elif len(selected_columns) == 2:
+            # 2 colonnes : X vs Y
+            x_col, y_col = selected_columns
+            
+            if df[x_col].dtype in ['object', 'category'] and df[y_col].dtype in ['object', 'category']:
+                # DEUX colonnes catégorielles : tableau de contingence (comptage)
+                aggregated = df.groupby([x_col, y_col]).size().reset_index(name='count')
+                aggregated['name'] = aggregated[x_col].astype(str) + " - " + aggregated[y_col].astype(str)
+                aggregated = aggregated.rename(columns={'count': 'value'})
+                chart_data = aggregated[['name', 'value']].to_dict('records')
+            
+            elif df[x_col].dtype in ['object', 'category']:
+                # X catégorielle, Y numérique : moyenne par catégorie
+                aggregated = df.groupby(x_col)[y_col].mean().reset_index()
+                aggregated.columns = ['name', 'value']
+                chart_data = aggregated.to_dict('records')
+            
+            else:
+                # Les deux numériques : scatter plot data
+                chart_data = df[[x_col, y_col]].dropna().to_dict('records')
+
+        elif len(selected_columns) == 3:
+            # 3 colonnes : X, Y, Z avec regroupement
+            x_col, y_col, z_col = selected_columns
+            
+            if df[x_col].dtype in ['object', 'category'] and df[z_col].dtype in ['object', 'category']:
+                # X et Z catégorielles, Y numérique : moyenne double groupe
+                aggregated = df.groupby([x_col, z_col])[y_col].mean().reset_index()
+                chart_data = aggregated.to_dict('records')
+            else:
+                # Autres cas : on prend les premières lignes
+                chart_data = df[selected_columns].head(50).to_dict('records')
+
+        else:
+            return Response({"error": "Maximum 3 colonnes autorisées"}, status=400)
+
+        return Response({
+            "chart_data": chart_data,
+            "selected_columns": selected_columns,
+            "data_type": "aggregated" if len(selected_columns) < 3 else "raw_sample"
+        })
+
+    except Exception as e:
+        return Response({"error": f"Erreur traitement données : {str(e)}"}, status=400)

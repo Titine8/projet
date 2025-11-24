@@ -532,58 +532,7 @@ export default function Analyse() {
 
 
                 {/* Quartiles → mini box plot */}
-                {modalData.type_colonne === "num" && modalData.quartile && (
-                  <div style={styles.section}>
-                    <strong>Quartiles :</strong>
-                    <div style={{ position: "relative", height: "20px", background: "#e0e0e0", borderRadius: "10px", marginTop: "5px" }}>
-                      {/* Q1 */}
-                      <div style={{
-                        position: "absolute",
-                        left: `${((modalData.quartile.Q1 - modalData.min_val) / (modalData.max_val - modalData.min_val)) * 100}%`,
-                        width: "2px",
-                        height: "100%",
-                        backgroundColor: "#00074d"
-                      }}>
-                        <span style={{ position: "absolute", top: "-18px", fontSize: "10px", color: "#00074d", transform: "translateX(-50%)" }}>
-                          {formatNumber(modalData.quartile.Q1)}
-                        </span>
-                      </div>
-
-                      {/* Q2 / médiane */}
-                      <div style={{
-                        position: "absolute",
-                        left: `${((modalData.quartile.Q2 - modalData.min_val) / (modalData.max_val - modalData.min_val)) * 100}%`,
-                        width: "2px",
-                        height: "100%",
-                        backgroundColor: "#00bcd4"
-                      }}>
-                        <span style={{ position: "absolute", top: "-18px", fontSize: "10px", color: "#00bcd4", transform: "translateX(-50%)" }}>
-                          {formatNumber(modalData.quartile.Q2)}
-                        </span>
-                      </div>
-
-                      {/* Q3 */}
-                      <div style={{
-                        position: "absolute",
-                        left: `${((modalData.quartile.Q3 - modalData.min_val) / (modalData.max_val - modalData.min_val)) * 100}%`,
-                        width: "2px",
-                        height: "100%",
-                        backgroundColor: "#3399cc"
-                      }}>
-                        <span style={{ position: "absolute", top: "-18px", fontSize: "10px", color: "#3399cc", transform: "translateX(-50%)" }}>
-                          {formatNumber(modalData.quartile.Q3)}
-                        </span>
-                      </div>
-                    </div>
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", marginTop: "3px" }}>
-                      <span>Min</span>
-                      <span>Q1</span>
-                      <span>Q2</span>
-                      <span>Q3</span>
-                      <span>Max</span>
-                    </div>
-                  </div>
-                )}
+                
 
 
 

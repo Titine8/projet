@@ -1,8 +1,0 @@
-Résumé global du dataset :
-- Nombre de lignes : 10
-- Nombre de colonnes : 4
-- Types de colonnes :
-  * ID: int64, valeurs uniques : 10
-  * Nom: object, valeurs uniques : 10
-  * Age: int64, valeurs uniques : 10
-  * Ville: object, valeurs uniques : 10

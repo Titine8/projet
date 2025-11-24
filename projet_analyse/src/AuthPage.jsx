@@ -60,7 +60,7 @@ export default function AuthPage() {
 
   const styles = {
     page: {
-      width: "100vw",
+      width: "100%",
       minHeight: "100vh",
       backgroundColor: "#e6f2f8",
       color: "#333",

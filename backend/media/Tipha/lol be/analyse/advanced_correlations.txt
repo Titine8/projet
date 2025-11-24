@@ -1,4 +1,0 @@
-Cramér's V entre 'ID' et 'Nom': 0
-Cramér's V entre 'ID' et 'Ville': 0
-Cramér's V entre 'Age' et 'Nom': 0
-Cramér's V entre 'Age' et 'Ville': 0

@@ -137,29 +137,32 @@ export default function Prediction() {
 
 
   // 4. Gestion de saisie AVEC VALIDATION
-  const handleInputChange = (col, value) => {
-    if (!useModelResponse) return;
+  // 4. Gestion de saisie AVEC VALIDATION ET RÉINITIALISATION DES DÉPENDANTS
+// 4. Gestion de saisie AVEC VALIDATION ET RÉINITIALISATION DES DÉPENDANTS
+// 4. Gestion de saisie SIMPLIFIÉE - sans réinitialisation automatique
+const handleInputChange = (col, value) => {
+  if (!useModelResponse) return;
 
-    const colInfo = useModelResponse.selected_columns[col];
+  const colInfo = useModelResponse.selected_columns[col];
 
-    if (colInfo && colInfo.type === "numerical") {
-      // Pour les champs numériques, valider immédiatement
-      if (value === "" || value === null || value === undefined) {
-        setInputValues(prev => ({ ...prev, [col]: "" }));
-      } else {
-        let numValue = Number(value);
-        // Limiter aux bornes min/max
-        if (numValue < colInfo.min) numValue = colInfo.min;
-        if (numValue > colInfo.max) numValue = colInfo.max;
-        setInputValues(prev => ({ ...prev, [col]: numValue }));
-      }
+  if (colInfo && colInfo.type === "numerical") {
+    // Pour les champs numériques, valider immédiatement
+    if (value === "" || value === null || value === undefined) {
+      setInputValues(prev => ({ ...prev, [col]: "" }));
     } else {
-      // Pour les champs catégoriels, accepter directement
-      setInputValues(prev => ({ ...prev, [col]: value }));
+      let numValue = Number(value);
+      // Limiter aux bornes min/max
+      if (numValue < colInfo.min) numValue = colInfo.min;
+      if (numValue > colInfo.max) numValue = colInfo.max;
+      setInputValues(prev => ({ ...prev, [col]: numValue }));
     }
+  } else {
+    // Pour les champs catégoriels, accepter directement
+    setInputValues(prev => ({ ...prev, [col]: value }));
+  }
 
-    setShowError(false);
-  };
+  setShowError(false);
+};
 
   // Vérifier si tous les champs sont remplis (non vides)
   const isPredictDisabled = () => {
@@ -264,6 +267,106 @@ export default function Prediction() {
     }
   };
 
+ // 🔹 AJOUTEZ CE CODE après handleSendMessage (ligne ~180)
+// 🔹 NOUVEAU : Réinitialiser les champs quand les valeurs changent
+// 🔹 NOUVEAU : Réinitialiser uniquement les champs dépendants quand nécessaire
+// 🔹 RÉINITIALISATION DOUCE : seulement quand absolument nécessaire
+
+// 🔹 NOUVELLE FONCTION : Filtre les options disponibles en fonction des valeurs déjà sélectionnées
+// 🔹 NOUVELLE FONCTION : Filtre les options disponibles en fonction des valeurs déjà sélectionnées
+const getFilteredOptions = (columnName, columnInfo) => {
+  if (!useModelResponse?.dataset_data || columnInfo.type !== "categorical") {
+    return columnInfo.categories || [];
+  }
+
+  // Filtrer les données basées sur les valeurs déjà sélectionnées
+  let filteredData = [...useModelResponse.dataset_data];
+  
+  Object.entries(inputValues).forEach(([col, value]) => {
+    if (value && col !== columnName && value !== "") {
+      const colInfo = useModelResponse.selected_columns[col];
+      
+      // Comparaison adaptée selon le type de colonne
+      if (colInfo.type === "categorical") {
+        filteredData = filteredData.filter(row => 
+          row[col]?.toString().toLowerCase() === value.toString().toLowerCase()
+        );
+      } else if (colInfo.type === "numerical") {
+        // Pour les valeurs numériques, comparer comme des nombres
+        filteredData = filteredData.filter(row => {
+          const rowValue = parseFloat(row[col]);
+          const inputValue = parseFloat(value);
+          return !isNaN(rowValue) && !isNaN(inputValue) && rowValue === inputValue;
+        });
+      }
+    }
+  });
+
+  // Extraire les valeurs uniques pour cette colonne
+  const uniqueValues = [...new Set(filteredData
+    .map(row => row[columnName])
+    .filter(val => val != null && val !== "")
+  )].sort();
+
+  return uniqueValues.map(val => val.toString());
+};
+
+// 🔹 NOUVELLE FONCTION : Filtre les valeurs numériques disponibles basées sur les autres sélections
+const getFilteredNumericalValues = (columnName, columnInfo) => {
+  if (!useModelResponse?.dataset_data || columnInfo.type !== "numerical") {
+    return null;
+  }
+
+  // Filtrer les données basées sur les valeurs déjà sélectionnées
+  let filteredData = [...useModelResponse.dataset_data];
+  
+  Object.entries(inputValues).forEach(([col, value]) => {
+    if (value && col !== columnName && value !== "") {
+      const colInfo = useModelResponse.selected_columns[col];
+      
+      if (colInfo.type === "categorical") {
+        // Pour les catégorielles : égalité exacte
+        filteredData = filteredData.filter(row => 
+          row[col]?.toString().toLowerCase() === value.toString().toLowerCase()
+        );
+      } else if (colInfo.type === "numerical") {
+        // Pour les numériques : égalité numérique
+        filteredData = filteredData.filter(row => {
+          const rowValue = parseFloat(row[col]);
+          const inputValue = parseFloat(value);
+          return !isNaN(rowValue) && !isNaN(inputValue) && rowValue === inputValue;
+        });
+      }
+    }
+  });
+
+  // Extraire les valeurs uniques pour cette colonne numérique
+  const uniqueValues = [...new Set(filteredData
+    .map(row => row[columnName])
+    .filter(val => val != null && val !== "" && !isNaN(val))
+    .map(val => parseFloat(val))
+  )].sort((a, b) => a - b);
+
+  return {
+    availableValues: uniqueValues,
+    min: uniqueValues.length > 0 ? Math.min(...uniqueValues) : columnInfo.min,
+    max: uniqueValues.length > 0 ? Math.max(...uniqueValues) : columnInfo.max,
+    count: uniqueValues.length
+  };
+};
+
+// 🔹 NOUVELLE FONCTION : Vérifie si un champ doit être désactivé (quand il n'y a pas d'options)
+// 🔹 MODIFIÉE : Vérifie si un champ doit être désactivé (quand il n'y a pas d'options)
+const isFieldDisabled = (columnName, columnInfo) => {
+  if (columnInfo.type === "categorical") {
+    const filteredOptions = getFilteredOptions(columnName, columnInfo);
+    return filteredOptions.length === 0;
+  } else if (columnInfo.type === "numerical") {
+    const filteredNumerical = getFilteredNumericalValues(columnName, columnInfo);
+    return filteredNumerical && filteredNumerical.availableValues.length === 0;
+  }
+  return false;
+};
 
   const menuButtons = [
     {
@@ -290,7 +393,7 @@ export default function Prediction() {
 
   const options =
     targetType === "num"
-      ? ["Régression", "Clustering", "Prévision temporelle"]
+      ? ["Régression", "Clustering"]
       : targetType === "cat"
         ? ["Classification", "Clustering"]
         : [];
@@ -452,67 +555,144 @@ export default function Prediction() {
 
               <h4 style={styles.inputTitle}>📝 Saisir les valeurs pour prédiction :</h4>
               <div style={styles.inputsGrid}>
-                {Object.entries(useModelResponse.selected_columns || {}).map(([col, info]) => (
+{Object.entries(useModelResponse.selected_columns || {}).map(([col, info]) => {
+  const filteredOptions = info.type === "categorical" ? getFilteredOptions(col, info) : [];
+  const filteredNumerical = info.type === "numerical" ? getFilteredNumericalValues(col, info) : null;
+  const isDisabled = isFieldDisabled(col, info);
 
+    return (
+      <div key={col} style={styles.inputGroup}>
+        <label style={{
+          ...styles.inputLabel,
+          ...(isDisabled ? { color: '#999', cursor: 'not-allowed' } : {})
+        }}>
+          {col} :
+          {isDisabled && " (Aucune option disponible)"}
+        </label>
+        
+        {info.type === "numerical" ? (
+  <div>
+    <input
+      type="number"
+      value={inputValues[col] ?? ""}
+      min={filteredNumerical ? filteredNumerical.min : info.min}
+      max={filteredNumerical ? filteredNumerical.max : info.max}
+      step="any"
+      onChange={(e) => {
+        let val = e.target.value;
+        if (val === "") {
+          handleInputChange(col, "");
+          return;
+        }
+        let numVal = Number(val);
+        const currentMin = filteredNumerical ? filteredNumerical.min : info.min;
+        const currentMax = filteredNumerical ? filteredNumerical.max : info.max;
+        if (numVal < currentMin) numVal = currentMin;
+        if (numVal > currentMax) numVal = currentMax;
+        handleInputChange(col, numVal);
+      }}
+      onBlur={(e) => {
+        if (e.target.value !== "") {
+          let numVal = Number(e.target.value);
+          const currentMin = filteredNumerical ? filteredNumerical.min : info.min;
+          const currentMax = filteredNumerical ? filteredNumerical.max : info.max;
+          if (numVal < currentMin || numVal > currentMax) {
+            let clampedVal = Math.max(currentMin, Math.min(currentMax, numVal));
+            handleInputChange(col, clampedVal);
+          }
+        }
+      }}
+      style={{
+        ...styles.textInput,
+        ...(isDisabled ? { 
+          backgroundColor: '#f5f5f5', 
+          color: '#999',
+          cursor: 'not-allowed'
+        } : {})
+      }}
+      disabled={isDisabled}
+      placeholder={
+        isDisabled 
+          ? "Aucune valeur disponible" 
+          : `Entre ${formatValue(filteredNumerical ? filteredNumerical.min : info.min)} et ${formatValue(filteredNumerical ? filteredNumerical.max : info.max)}`
+      }
+    />
+    
+    {/* 🔹 SUGGESTIONS DE VALEURS NUMÉRIQUES */}
+    {!isDisabled && filteredNumerical && filteredNumerical.availableValues.length > 0 && (
+      <div style={styles.suggestionsContainer}>
+        <small style={styles.suggestionsTitle}>
+          Valeurs disponibles: {filteredNumerical.count} option(s)
+        </small>
+        <div style={styles.suggestionsList}>
+          {filteredNumerical.availableValues
+            .slice(0, 10) // Limiter à 10 premières valeurs
+            .map((value, index) => (
+              <button
+                key={index}
+                type="button"
+                style={styles.suggestionButton}
+                onClick={() => handleInputChange(col, value)}
+              >
+                {formatValue(value)}
+              </button>
+            ))}
+          {filteredNumerical.availableValues.length > 10 && (
+            <small style={styles.moreOptions}>
+              ... et {filteredNumerical.availableValues.length - 10} autres
+            </small>
+          )}
+        </div>
+      </div>
+    )}
+  </div>
+) : info.type === "categorical" ? (
+          <select
+            value={inputValues[col] ?? ""}
+            onChange={(e) => handleInputChange(col, e.target.value)}
+            style={{
+              ...styles.textInput,
+              ...(isDisabled ? { 
+                backgroundColor: '#f5f5f5', 
+                color: '#999',
+                cursor: 'not-allowed'
+              } : {})
+            }}
+            disabled={isDisabled}
+          >
+            <option value="">-- Sélectionner une option --</option>
+            {filteredOptions.map((cat) => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
 
-                  <div key={col} style={styles.inputGroup}>
-                    <label style={styles.inputLabel}>{col} :</label>
-                    {info.type === "numerical" ? (
-                      <input
-                        type="number"
-                        value={inputValues[col] ?? ""}
-                        min={info.min}
-                        max={info.max}
-                        step="any"
-                        onChange={(e) => {
-                          let val = e.target.value;
-                          // Si vide, garder vide
-                          if (val === "") {
-                            handleInputChange(col, "");
-                            return;
-                          }
-                          // Convertir en number et valider
-                          let numVal = Number(val);
-                          if (numVal < info.min) numVal = info.min;
-                          if (numVal > info.max) numVal = info.max;
-                          handleInputChange(col, numVal);
-                        }}
-                        onBlur={(e) => {
-                          // Au blur, s'assurer que la valeur est dans les bornes
-                          if (e.target.value !== "") {
-                            let numVal = Number(e.target.value);
-                            if (numVal < info.min || numVal > info.max) {
-                              let clampedVal = Math.max(info.min, Math.min(info.max, numVal));
-                              handleInputChange(col, clampedVal);
-                            }
-                          }
-                        }}
-                        style={styles.textInput}
-                        placeholder={`Entre ${formatValue(info.min)} et ${formatValue(info.max)}`}
-                      />
-                    ) : info.type === "categorical" ? (
-                      <select
-                        value={inputValues[col] ?? ""}
-                        onChange={(e) => handleInputChange(col, e.target.value)}
-                        style={styles.textInput}
-                      >
-                        <option value="">-- Sélectionner une option --</option>
-                        {info.categories.map((cat) => (
-                          <option key={cat} value={cat}>{cat}</option>
-                        ))}
-                      </select>
-                    ) : null}
-                    {info && (
-                      <div style={styles.columnInfo}>
-                        <small style={styles.columnStats}>
-                          {console.log("Colonne:", col, "Info:", info)}
-                          Type: {info.type} {info.type === "numerical" ? `| Min: ${formatValue(info.min)} | Max: ${formatValue(info.max)}` : ""}
-                        </small>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
+            {inputValues[col] && !filteredOptions.includes(inputValues[col]) && (
+  <option value={inputValues[col]} style={{color: '#ff6b6b', fontStyle: 'italic'}}>
+    ⚠️ {inputValues[col]} (invalide)
+  </option>
+)}
+          </select>
+        ) : null}
+        
+        {info && (
+          <div style={styles.columnInfo}>
+           <small style={styles.columnStats}>
+  Type: {info.type} 
+  {info.type === "numerical" ? ` | Min: ${formatValue(filteredNumerical ? filteredNumerical.min : info.min)} | Max: ${formatValue(filteredNumerical ? filteredNumerical.max : info.max)} | Options: ${filteredNumerical ? filteredNumerical.count : 'toutes'} disponible(s)` : ""}
+  {info.type === "categorical" && ` | Options: ${filteredOptions.length} disponible(s)`}
+</small>
+
+            {info.type === "categorical" && inputValues[col] && !filteredOptions.includes(inputValues[col]) && (
+  <small style={{color: '#ff6b6b', fontSize: '11px', display: 'block', marginTop: '2px'}}>
+    ⚠️ Cette valeur n'est pas compatible avec vos autres sélections
+  </small>
+  
+)}
+          </div>
+        )}
+      </div>
+    );
+  })}
+</div>
 
               {showError && (
                 <div style={styles.errorMessage}>
@@ -1310,5 +1490,38 @@ const styles = {
         opacity: 1
       }
     }
-  }
+  },
+  suggestionsContainer: {
+  marginTop: '8px',
+  padding: '8px',
+  backgroundColor: '#f8f9fa',
+  borderRadius: '6px',
+  border: '1px solid #e9ecef'
+},
+suggestionsTitle: {
+  display: 'block',
+  color: '#666',
+  marginBottom: '6px',
+  fontWeight: '600'
+},
+suggestionsList: {
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: '4px'
+},
+suggestionButton: {
+  padding: '4px 8px',
+  fontSize: '11px',
+  backgroundColor: '#e9ecef',
+  border: '1px solid #ddd',
+  borderRadius: '4px',
+  cursor: 'pointer',
+  transition: 'all 0.2s ease'
+},
+moreOptions: {
+  color: '#666',
+  fontStyle: 'italic',
+  alignSelf: 'center',
+  marginLeft: '8px'
+}
 };

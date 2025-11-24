@@ -1024,7 +1024,7 @@ export default function ImportPage() {
             {/* ========== APERÇU DES DONNÉES ========== */}
             {showPreview && (
               <div style={{ marginTop: "20px", maxHeight: "300px", overflow: "auto" }}>
-                <h4 style={{ color: "#00074d", marginBottom: "10px" }}>Aperçu des données (10 premières lignes)</h4>
+                <h4 style={{ color: "#00074d", marginBottom: "10px" }}></h4>
                 {previewLoading ? (
                   <p style={{ fontStyle: "italic", color: "#00074d" }}>Chargement de l'aperçu...</p>
                 ) : previewData.length > 0 ? (

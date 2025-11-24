@@ -1,0 +1,20 @@
+Cramér's V entre 'Engine size' et 'Manufacturer': 0.529
+Cramér's V entre 'Engine size' et 'Model': 0.467
+Cramér's V entre 'Engine size' et 'Engine size': 1.0
+Cramér's V entre 'Engine size' et 'Fuel type': 0.314
+Cramér's V entre 'Engine size' et 'Year of manufacture': 0.01
+Cramér's V entre 'Year of manufacture' et 'Manufacturer': 0.019
+Cramér's V entre 'Year of manufacture' et 'Model': 0.0
+Cramér's V entre 'Year of manufacture' et 'Engine size': 0.01
+Cramér's V entre 'Year of manufacture' et 'Fuel type': 0.019
+Cramér's V entre 'Year of manufacture' et 'Year of manufacture': 1.0
+Cramér's V entre 'Mileage' et 'Manufacturer': 0.0
+Cramér's V entre 'Mileage' et 'Model': 0.0
+Cramér's V entre 'Mileage' et 'Engine size': 0.0
+Cramér's V entre 'Mileage' et 'Fuel type': 0.032
+Cramér's V entre 'Mileage' et 'Year of manufacture': 0.054
+Cramér's V entre 'Price' et 'Manufacturer': 0.113
+Cramér's V entre 'Price' et 'Model': 0.086
+Cramér's V entre 'Price' et 'Engine size': 0.132
+Cramér's V entre 'Price' et 'Fuel type': 0.067
+Cramér's V entre 'Price' et 'Year of manufacture': 0.0

@@ -1,5 +1,0 @@
-Résumé du dataset :
-- Nombre de lignes : 5000
-- Nombre de colonnes : 7
-- Types de colonnes : {'Manufacturer': dtype('O'), 'Model': dtype('O'), 'Engine size': dtype('float64'), 'Fuel type': dtype('O'), 'Year of manufacture': dtype('int64'), 'Mileage': dtype('int64'), 'Price': dtype('int64')}
-- Valeurs manquantes totales : 0

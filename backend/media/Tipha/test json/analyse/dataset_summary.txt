@@ -1,5 +1,0 @@
-Résumé du dataset :
-- Nombre de lignes : 107
-- Nombre de colonnes : 8
-- Types de colonnes : {'nom_vendeur': dtype('O'), 'nom_produit': dtype('O'), 'categorie_produit': dtype('O'), 'quantite': dtype('int64'), 'montant_total': dtype('float64'), 'date_vente_jour': dtype('int64'), 'date_vente_mois': dtype('O'), 'date_vente_annee': dtype('int64')}
-- Valeurs manquantes totales : 0

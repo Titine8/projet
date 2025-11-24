@@ -274,7 +274,7 @@ def search_model(request):
             models = [
                 ("KMeans", KMeans(n_clusters=3, random_state=42)),
                 ("AgglomerativeClustering", AgglomerativeClustering(n_clusters=3)),
-                ("DBSCAN", DBSCAN(eps=0.5, min_samples=5))
+               
             ]
         
 
@@ -357,7 +357,42 @@ def search_model(request):
         print(f"❌ Erreur interne : {e}")
         return Response({"error": f"Erreur interne: {str(e)}"}, status=500)
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_dataset_data(request):
+    """Récupère les données originales du dataset pour le filtrage dynamique"""
+    username = request.query_params.get('username')
+    folder = request.query_params.get('folder')
+    limit = int(request.query_params.get('limit', 1000))  # Limite pour les performances
 
+    if not username or not folder:
+        return Response({"error": "Paramètres manquants"}, status=400)
+
+    base_path = os.path.join(settings.MEDIA_ROOT, username, folder, "analyse")
+    file_path = os.path.join(base_path, "file_combined.csv")
+
+    if not os.path.exists(file_path):
+        return Response({"error": "Fichier file_combined.csv introuvable"}, status=404)
+
+    try:
+        # Charger les données
+        df = pd.read_csv(file_path)
+        
+        # Limiter le nombre de lignes pour les performances
+        if len(df) > limit:
+            df = df.sample(n=limit, random_state=42)
+        
+        # Convertir en format adapté pour le frontend
+        data = df.to_dict(orient='records')
+        
+        return Response({
+            "data": data,
+            "total_rows": len(df),
+            "columns": df.columns.tolist()
+        })
+        
+    except Exception as e:
+        return Response({"error": f"Erreur lors de la lecture des données: {str(e)}"}, status=500)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -518,14 +553,28 @@ def use_model(request):
             selected_columns_info = {}
     else:
         selected_columns_info = {}
+    dataset_data = None
+    try:
+        file_path = os.path.join(base_path, "file_combined.csv")
+        if os.path.exists(file_path):
+            # Charger un échantillon des données originales (limité pour performance)
+            df_original = pd.read_csv(file_path, nrows=1000)
+            
+            # Convertir en format adapté pour le frontend
+            dataset_data = df_original.to_dict(orient='records')
+            print(f"✅ Données originales chargées pour filtrage : {len(dataset_data)} lignes")
+            
+    except Exception as e:
+        print(f"⚠️ Erreur chargement données originales: {e}")
 
     response_data = {
-        "message": f"Modèle {model_name} évalué avec succès sur les données de test.",
-        "model_name": model_name,
-        "selected_columns": selected_columns_info,
-        "score": round(score, 4),
-        "feature_importance": feature_importance  # ← NOUVEAU
-    }
+    "message": f"Modèle {model_name} évalué avec succès sur les données de test.",
+    "model_name": model_name,
+    "selected_columns": selected_columns_info,
+    "score": round(score, 4),
+    "feature_importance": feature_importance,
+    "dataset_data": dataset_data  # ← NOUVEAU : données pour filtrage dynamique
+        }
 
     return Response(response_data)
 

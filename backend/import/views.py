@@ -363,47 +363,48 @@ def save_relations(request, folder_name):
             df = pd.read_excel(path)
         else:
             raise ValueError(f"Extension non supportée: {ext}")
+
         # Nettoyage des colonnes
         df.columns = [c.strip().replace('\ufeff','') for c in df.columns]
-        # Ajout du préfixe pour éviter les collisions
+
+        # Ajout du préfixe pour éviter collisions
         df = df.add_prefix(f"{prefix}.")
         return df
 
-    # Préparer les préfixes des fichiers (sans extension)
+    # Stocker les préfixes
     file_prefix = {}
     for rel in data:
         for fichier in [rel["fichier1"], rel["fichier2"]]:
             if fichier not in dfs:
                 path = os.path.join(user_folder, fichier)
-                prefix = os.path.splitext(fichier)[0]  # ex: client, produit
+                prefix = os.path.splitext(fichier)[0]
                 dfs[fichier] = read_file(path, prefix)
                 file_prefix[fichier] = prefix
 
-    # 3️⃣ Déterminer le pivot central
+    # 3️⃣ Trouver le pivot (fichier le plus lié)
     file_counts = Counter()
     for rel in data:
         file_counts[rel["fichier1"]] += 1
         file_counts[rel["fichier2"]] += 1
+
     pivot_file = file_counts.most_common(1)[0][0]
     merged_df = dfs[pivot_file]
 
-    # 4️⃣ Fonction merge intelligente
+    # 4️⃣ Merge intelligent
     def merge_relation(df_left, df_right, left_on, right_on):
         common_cols = set(df_left.columns).intersection(df_right.columns) - {left_on, right_on}
         if common_cols:
             df_right = df_right.rename(columns={c: f"{c}_from_merge" for c in common_cols})
         return pd.merge(df_left, df_right, left_on=left_on, right_on=right_on, how='outer')
 
-    # 5️⃣ Merge tous les fichiers selon les relations
+    # 5️⃣ MERGE selon relations
     for rel in data:
         left_file = rel["fichier1"]
         right_file = rel["fichier2"]
 
-        # ⚡ Extraire le nom de colonne avant le f-string pour éviter le backslash
         left_col_name = rel['colonne1'].strip().replace('\ufeff','')
         right_col_name = rel['colonne2'].strip().replace('\ufeff','')
 
-        # Colonnes préfixées pour le merge
         left_col = f"{file_prefix[left_file]}.{left_col_name}"
         right_col = f"{file_prefix[right_file]}.{right_col_name}"
 
@@ -413,6 +414,28 @@ def save_relations(request, folder_name):
             merged_df = merge_relation(merged_df, dfs[left_file], right_col, left_col)
         else:
             merged_df = merge_relation(merged_df, dfs[left_file], left_col, right_col)
+
+    # 🔥🔥🔥 5️⃣bis — SUPPRESSION DES COLONNES DE JOINTURE (ID) 🔥🔥🔥
+    cols_to_remove = []
+
+    for rel in data:
+        col1 = rel["colonne1"].strip().replace('\ufeff', '')
+        col2 = rel["colonne2"].strip().replace('\ufeff', '')
+
+        file1 = rel["fichier1"]
+        file2 = rel["fichier2"]
+
+        prefix1 = file_prefix[file1]
+        prefix2 = file_prefix[file2]
+
+        cols_to_remove.append(f"{prefix1}.{col1}")
+        cols_to_remove.append(f"{prefix2}.{col2}")
+
+    # On retire uniquement celles présentes
+    cols_to_remove = [c for c in cols_to_remove if c in merged_df.columns]
+
+    merged_df = merged_df.drop(columns=cols_to_remove, errors="ignore")
+    # 🔥🔥🔥 FIN DE L'AJOUT 🔥🔥🔥
 
     # 6️⃣ Sauvegarde du fichier combiné
     combined_file_path = os.path.join(analyse_folder, "file_combined.csv")
@@ -427,6 +450,7 @@ def save_relations(request, folder_name):
         "combined_file": "file_combined.csv",
         "columns": columns
     }, status=200)
+
 
 
 
@@ -480,13 +504,12 @@ def check_relations_file(request, folder_name):
 @permission_classes([IsAuthenticated])
 def create_relation(request, folder_name):
     """
-    Analyse les fichiers d’un dossier utilisateur et retourne les relations détectées
-    entre colonnes de différents fichiers sous forme JSON.
+    Crée des relations basées sur la similarité des noms de colonnes
     """
     import os
-    import re
-    import unicodedata
     import pandas as pd
+    import json
+    import re
     from django.conf import settings
 
     user = request.user
@@ -495,106 +518,101 @@ def create_relation(request, folder_name):
     if not os.path.isdir(folder):
         return Response({"detail": "Dossier introuvable."}, status=404)
 
-    # --- paramètres de l’algorithme ---
     ALLOWED_EXT = {'.csv', '.xlsx', '.xls'}
-    SAMPLE_N_ROWS = 200000
-    UNIQUE_VALUES_CAP = 20000
-    THRESHOLD = 0.65
-    MIN_NON_NULL_RATIO = 0.01
-    _rx_non_alnum = re.compile(r'[^0-9A-Za-z]+')
-
-    def normalize_value(v):
-        if pd.isna(v):
-            return None
-        s = str(v).strip()
-        if s == '':
-            return None
-        s = unicodedata.normalize('NFKD', s)
-        s = s.lower()
-        s = _rx_non_alnum.sub('', s)
-        return s if s else None
 
     def load_tabular(filepath):
         ext = os.path.splitext(filepath)[1].lower()
         try:
             if ext == '.csv':
-                return pd.read_csv(filepath, nrows=SAMPLE_N_ROWS, dtype=str, low_memory=False)
+                return pd.read_csv(filepath, nrows=1, dtype=str, low_memory=False)  # Juste les headers
             elif ext in ('.xlsx', '.xls'):
-                return pd.read_excel(filepath, nrows=SAMPLE_N_ROWS, dtype=str)
+                return pd.read_excel(filepath, nrows=1, dtype=str)
         except Exception:
             return None
         return None
 
-    def extract_column_values(df, col):
-        total = len(df)
-        if total == 0:
-            return set(), 0, 0
-        series = df[col]
-        non_null = 0
-        values = set()
-        for val in series:
-            nv = normalize_value(val)
-            if nv is None:
-                continue
-            non_null += 1
-            if len(values) < UNIQUE_VALUES_CAP:
-                values.add(nv)
-        return values, non_null, total
+    def normalize_column_name(col_name):
+        """Normalise le nom de colonne pour la comparaison"""
+        if pd.isna(col_name):
+            return ""
+        
+        col = str(col_name).strip().lower()
+        
+        # Supprimer les caractères spéciaux, garder seulement lettres, chiffres et underscore
+        col = re.sub(r'[^a-z0-9_]', '', col)
+        
+        # Séparer par underscore et trier les parties pour standardiser l'ordre
+        parts = [part for part in col.split('_') if part]  # Supprimer les parties vides
+        
+        if len(parts) > 1:
+            # Trier les parties alphabétiquement pour que "client_id" et "id_client" deviennent identiques
+            return '_'.join(sorted(parts))
+        elif parts:
+            return parts[0]
+        else:
+            return ""
 
-    # 1) lister fichiers
-    files = []
+    def are_columns_similar(col1, col2):
+        """Vérifie si deux colonnes normalisées sont similaires"""
+        norm1 = normalize_column_name(col1)
+        norm2 = normalize_column_name(col2)
+        
+        if not norm1 or not norm2:
+            return False
+            
+        # Exact match après normalisation
+        if norm1 == norm2:
+            return True
+            
+        # Vérifier la similarité avec un seuil (pour gérer les petites différences)
+        # Par exemple: "customer_id" vs "client_id"
+        from difflib import SequenceMatcher
+        similarity = SequenceMatcher(None, norm1, norm2).ratio()
+        return similarity > 0.8  # 80% de similarité
+
+    # 1) Lister les fichiers et récupérer les colonnes
+    files_columns = {}
     for fname in os.listdir(folder):
         path = os.path.join(folder, fname)
         if not os.path.isfile(path):
             continue
         ext = os.path.splitext(fname)[1].lower()
         if ext in ALLOWED_EXT:
-            files.append((fname, path))
+            df = load_tabular(path)
+            if df is not None:
+                df.columns = [str(c) for c in df.columns]
+                files_columns[fname] = df.columns.tolist()
 
-    if not files:
-        return Response([], status=200)
-
-    # 2) extraire colonnes et valeurs
-    metadata = {}
-    for fname, path in files:
-        df = load_tabular(path)
-        if df is None:
-            continue
-        df.columns = [str(c) for c in df.columns]
-        metadata[fname] = {"cols": {}}
-        for col in df.columns:
-            vals, non_null, total = extract_column_values(df, col)
-            if total == 0 or (non_null / max(total, 1)) < MIN_NON_NULL_RATIO:
-                continue
-            metadata[fname]['cols'][col] = {"values": vals}
-
-    # 3) comparer colonnes (éviter les doublons)
+    # 2) Trouver les colonnes similaires entre fichiers
     relations = []
-    file_names = list(metadata.keys())
-    for i, f1 in enumerate(file_names):
-        for j in range(i + 1, len(file_names)):  # ne compare que f1 avec les fichiers suivants
+    processed_pairs = set()
+    
+    file_names = list(files_columns.keys())
+    
+    for i in range(len(file_names)):
+        for j in range(i + 1, len(file_names)):
+            f1 = file_names[i]
             f2 = file_names[j]
-            for c1, info1 in metadata[f1]['cols'].items():
-                vals1 = info1['values']
-                if not vals1:
-                    continue
-                for c2, info2 in metadata[f2]['cols'].items():
-                    vals2 = info2['values']
-                    if not vals2:
+            
+            for col1 in files_columns[f1]:
+                for col2 in files_columns[f2]:
+                    # Créer un identifiant unique pour cette paire
+                    pair_id = tuple(sorted([(f1, col1), (f2, col2)]))
+                    
+                    if pair_id in processed_pairs:
                         continue
-                    inter = vals1.intersection(vals2)
-                    prop1 = len(inter) / len(vals1) if vals1 else 0
-                    prop2 = len(inter) / len(vals2) if vals2 else 0
-                    if prop1 >= THRESHOLD or prop2 >= THRESHOLD:
+                    
+                    if are_columns_similar(col1, col2):
                         relations.append({
                             "fichier1": f1,
-                            "colonne1": c1,
+                            "colonne1": col1,
                             "fichier2": f2,
-                            "colonne2": c2
+                            "colonne2": col2,
+                            "confidence": 1.0
                         })
+                        processed_pairs.add(pair_id)
 
-
-    # 4) créer le dossier 'analyse' si nécessaire et sauvegarder le JSON
+    # 3) Sauvegarder dans le dossier analyse
     analyse_folder = os.path.join(folder, 'analyse')
     os.makedirs(analyse_folder, exist_ok=True)
     json_path = os.path.join(analyse_folder, 'relations.json')
@@ -602,7 +620,6 @@ def create_relation(request, folder_name):
         json.dump(relations, f, ensure_ascii=False, indent=4)
 
     return Response(relations, status=200)
-
 
 
 
